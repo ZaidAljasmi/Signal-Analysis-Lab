@@ -1,0 +1,1258 @@
+<!-- Islamic University of Diwaniyah, Group A. -->
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signal Lab</title>
+<style>
+:root{
+  --bg:#f4f6f9; --card:#ffffff; --ink:#1b2430; --muted:#5d6b7c; --line:#d9e0e8;
+  --accent:#1f6feb; --accent-ink:#ffffff; --ok:#17803d; --warn:#9a6700; --bad:#c62828; --plot:#1f6feb;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Arabic",sans-serif}
+header{background:#0f2742;color:#fff;padding:14px 16px}
+header .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+header h1{margin:0;font-size:1.2rem}
+header p{margin:2px 0 0;font-size:.85rem;opacity:.8}
+.wrap{max-width:1000px;margin:0 auto}
+main{padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+.card h2{margin:0 0 10px;font-size:1.05rem}
+label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:3px}
+input[type=text],input[type=number]{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:7px;font:inherit;background:#fff;color:var(--ink);direction:ltr;text-align:left}
+input::placeholder{color:#9aa6b5;opacity:1}
+input:focus{outline:2px solid var(--accent);outline-offset:0}
+.expr{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:1.05rem}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+@media (max-width:560px){.row{grid-template-columns:1fr}}
+button{font:inherit;cursor:pointer;border-radius:7px;border:1px solid var(--line);background:#fff;color:var(--ink);padding:8px 12px}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600;padding:10px 22px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+.examples{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.examples button{direction:ltr;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88rem}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:12px}
+.seg button{border:0;border-radius:0;padding:8px 16px;background:#fff}
+.seg button+button{border-inline-start:1px solid var(--line)}
+.seg button.on{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.sub{font-size:.85rem;color:var(--muted);margin:14px 0 0}
+#msg{margin-top:12px}
+.alert{padding:10px 12px;border-radius:7px;font-size:.92rem;margin-top:8px;border:1px solid}
+.alert.err{background:#fdecea;border-color:#f5b5af;color:#8a1f17}
+.alert.warn{background:#fff6e0;border-color:#f0d58a;color:#6b4a00}
+.plotbox{position:relative}
+canvas{width:100%;height:380px;display:block;background:#fff;border:1px solid var(--line);border-radius:8px}
+#hover{font-size:.85rem;color:var(--muted);min-height:1.4em;margin-top:6px;direction:ltr;text-align:left;font-family:ui-monospace,Menlo,Consolas,monospace}
+table.res{width:100%;border-collapse:collapse}
+table.res td{padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+table.res td:first-child{width:38%;color:var(--muted);font-size:.9rem}
+.val{direction:ltr;text-align:start;unicode-bidi:plaintext}
+html[dir=rtl] .val{text-align:right}
+.badge{display:inline-block;padding:2px 10px;border-radius:99px;font-weight:600;font-size:.9rem}
+.badge.periodic{background:#e3f6ea;color:var(--ok)}
+.badge.aperiodic{background:#fdecea;color:var(--bad)}
+.badge.constant{background:#e8eefc;color:#2a4fb0}
+.badge.inconclusive{background:#fff6e0;color:var(--warn)}
+ul.notes{margin:0;padding-inline-start:18px}
+details{margin-top:4px}
+details summary{cursor:pointer;font-weight:600}
+details p,details li{font-size:.92rem}
+code{background:#eef2f7;padding:1px 5px;border-radius:4px;direction:ltr;unicode-bidi:isolate;font-size:.9em}
+footer{text-align:center;color:var(--muted);font-size:.8rem;padding:6px 0 24px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div>
+    <h1 data-i18n="title"></h1>
+    <p data-i18n="subtitle"></p>
+  </div>
+  <button id="langBtn" type="button" aria-label="Language">English</button>
+</div></header>
+
+<main class="wrap">
+  <section class="card">
+    <h2 data-i18n="secInput"></h2>
+    <div class="seg" role="group" aria-label="mode">
+      <button id="modeCont" type="button" class="on"></button>
+      <button id="modeDisc" type="button"></button>
+    </div>
+    <label for="expr" id="lblExprEl"></label>
+    <input id="expr" class="expr" type="text" value="" placeholder="sin(2*pi*t)" autocomplete="off" spellcheck="false" maxlength="200">
+    <div class="row">
+      <div><label for="t0" id="lblT0El"></label><input id="t0" type="text" inputmode="decimal" value="0"></div>
+      <div><label for="t1" id="lblT1El"></label><input id="t1" type="text" inputmode="decimal" value="3"></div>
+      <div id="nsBox"><label for="ns" data-i18n="lblN"></label><input id="ns" type="text" inputmode="numeric" value="1000"></div>
+    </div>
+    <div class="actions"><button id="plotBtn" class="primary" type="button" data-i18n="btnPlot"></button></div>
+    <p class="sub" id="lblExamplesEl"></p>
+    <div class="examples" id="examples"></div>
+    <div id="msg" aria-live="polite"></div>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="secPlot"></h2>
+    <div class="plotbox"><canvas id="cv" role="img" aria-label="signal plot"></canvas></div>
+    <div id="hover"></div>
+  </section>
+
+  <section class="card" id="resCard" hidden>
+    <h2 data-i18n="secResults"></h2>
+    <table class="res"><tbody id="resBody"></tbody></table>
+  </section>
+
+  <section class="card">
+    <h2 data-i18n="secAbout"></h2>
+    <div id="about"></div>
+  </section>
+</main>
+
+<script>
+/*CORE-START*/
+"use strict";
+/* =====================================================================
+   CORE: safe expression parser + evaluator + periodicity analysis.
+   No eval(), no Function(): the user's text is turned into a tree (AST)
+   by a small recursive-descent parser, and the tree is evaluated by a
+   plain recursive function that only knows the allowed operations.
+   ===================================================================== */
+class SignalError extends Error {
+  constructor(code, params) { super(code); this.code = code; this.params = params || {}; }
+}
+const FUNCS = { sin: Math.sin, cos: Math.cos, tan: Math.tan, exp: Math.exp, sqrt: Math.sqrt, abs: Math.abs };
+const MAX_LEN = 200;
+const EPS = 1e-12;
+/* Set by analyze(ast, true) while it classifies a DISCRETE-time signal x[n]
+   (n integer, period N integer). It is always reset in a finally block. */
+let DISCRETE = false;
+const MAX_DISCRETE_PERIOD = 1000000;
+
+function tokenize(src) {
+  const out = [];
+  let i = 0;
+  while (i < src.length) {
+    const ch = src[i];
+    if (ch === " " || ch === "\t" || ch === "\n" || ch === "\r") { i++; continue; }
+    if ((ch >= "0" && ch <= "9") || ch === ".") {
+      const m = /^(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/.exec(src.slice(i));
+      if (!m || !isFinite(parseFloat(m[0]))) throw new SignalError("badNumber", { pos: i + 1 });
+      out.push({ type: "num", value: parseFloat(m[0]), pos: i + 1 });
+      i += m[0].length;
+      continue;
+    }
+    if (/[A-Za-z_]/.test(ch)) {
+      const m = /^[A-Za-z_][A-Za-z0-9_]*/.exec(src.slice(i));
+      out.push({ type: "id", value: m[0].toLowerCase(), pos: i + 1 });
+      i += m[0].length;
+      continue;
+    }
+    if ("+-*/^()".indexOf(ch) >= 0) { out.push({ type: "op", value: ch, pos: i + 1 }); i++; continue; }
+    throw new SignalError("badChar", { ch: ch, pos: i + 1 });
+  }
+  out.push({ type: "end", pos: src.length + 1 });
+  return out;
+}
+
+/* Grammar:
+   expr   := term (('+'|'-') term)*
+   term   := unary (('*'|'/') unary)*
+   unary  := ('-'|'+') unary | power
+   power  := primary ('^' unary)?
+   primary:= number | t | pi | func '(' expr ')' | '(' expr ')'            */
+function parseExpression(src, varName) {
+  varName = varName || "t";            // "t" for continuous time, "n" for discrete time
+  if (typeof src !== "string" || src.trim() === "") throw new SignalError("empty");
+  if (src.length > MAX_LEN) throw new SignalError("tooLong", { max: MAX_LEN });
+  const tk = tokenize(src);
+  let p = 0;
+  const peek = () => tk[p];
+  const next = () => tk[p++];
+  const isOp = (v) => peek().type === "op" && peek().value === v;
+
+  function expr() {
+    let n = term();
+    while (isOp("+") || isOp("-")) { const op = next().value; n = { type: "bin", op: op, a: n, b: term() }; }
+    return n;
+  }
+  function term() {
+    let n = unary();
+    while (isOp("*") || isOp("/")) { const op = next().value; n = { type: "bin", op: op, a: n, b: unary() }; }
+    return n;
+  }
+  function unary() {
+    if (isOp("-")) { next(); return { type: "neg", a: unary() }; }
+    if (isOp("+")) { next(); return unary(); }
+    return power();
+  }
+  function power() {
+    const base = primary();
+    if (isOp("^")) { next(); return { type: "bin", op: "^", a: base, b: unary() }; }
+    return base;
+  }
+  function primary() {
+    const tok = next();
+    if (tok.type === "num") return { type: "num", v: tok.value };
+    if (tok.type === "id") {
+      if (tok.value === varName) return { type: "t" };     // the single variable node
+      if (tok.value === "pi") return { type: "num", v: Math.PI };
+      const known = Object.prototype.hasOwnProperty.call(FUNCS, tok.value);
+      if (peek().type === "op" && peek().value === "(") {
+        if (!known) throw new SignalError("unsupportedFunc", { name: tok.value, pos: tok.pos });
+        next();
+        const arg = expr();
+        if (!isOp(")")) throw new SignalError("missingParen", { pos: peek().pos });
+        next();
+        return { type: "call", fn: tok.value, a: arg };
+      }
+      if (known) throw new SignalError("needParens", { name: tok.value, pos: tok.pos });
+      throw new SignalError("unknownIdent", { name: tok.value, pos: tok.pos, v: varName });
+    }
+    if (tok.type === "op" && tok.value === "(") {
+      const e = expr();
+      if (!isOp(")")) throw new SignalError("missingParen", { pos: peek().pos });
+      next();
+      return e;
+    }
+    throw new SignalError("unexpected", { pos: tok.pos });
+  }
+
+  const ast = expr();
+  const rest = peek();
+  if (rest.type !== "end") {
+    if (rest.type === "num" || rest.type === "id" || (rest.type === "op" && rest.value === "(")) {
+      throw new SignalError("missingMul", { pos: rest.pos });
+    }
+    throw new SignalError("unexpected", { pos: rest.pos });
+  }
+  return ast;
+}
+
+function evalNode(n, t) {
+  switch (n.type) {
+    case "num": return n.v;
+    case "t": return t;
+    case "neg": return -evalNode(n.a, t);
+    case "call": return FUNCS[n.fn](evalNode(n.a, t));
+    default: {
+      const a = evalNode(n.a, t), b = evalNode(n.b, t);
+      switch (n.op) {
+        case "+": return a + b;
+        case "-": return a - b;
+        case "*": return a * b;
+        case "/": return a / b;
+        default: return Math.pow(a, b);
+      }
+    }
+  }
+}
+
+function hasT(n) {
+  if (n._hasT !== undefined) return n._hasT;
+  let r;
+  if (n.type === "t") r = true;
+  else if (n.type === "num") r = false;
+  else if (n.type === "neg" || n.type === "call") r = hasT(n.a);
+  else r = hasT(n.a) || hasT(n.b);
+  n._hasT = r;
+  return r;
+}
+
+function sameNode(x, y) {
+  if (x.type !== y.type) return false;
+  switch (x.type) {
+    case "num": return x.v === y.v;
+    case "t": return true;
+    case "neg": return sameNode(x.a, y.a);
+    case "call": return x.fn === y.fn && sameNode(x.a, y.a);
+    default: return x.op === y.op && sameNode(x.a, y.a) && sameNode(x.b, y.b);
+  }
+}
+
+/* If n is exactly a*t+b with numeric a,b, return {a,b}; otherwise null. */
+function linearForm(n) {
+  switch (n.type) {
+    case "num": return { a: 0, b: n.v };
+    case "t": return { a: 1, b: 0 };
+    case "neg": { const l = linearForm(n.a); return l && { a: -l.a, b: -l.b }; }
+    case "call": {
+      if (hasT(n)) return null;
+      const v = evalNode(n, 0);
+      return isFinite(v) ? { a: 0, b: v } : null;
+    }
+    default: {
+      const x = linearForm(n.a), y = linearForm(n.b);
+      if (!x || !y) return null;
+      const zx = Math.abs(x.a) < EPS, zy = Math.abs(y.a) < EPS;
+      if (n.op === "+") return { a: x.a + y.a, b: x.b + y.b };
+      if (n.op === "-") return { a: x.a - y.a, b: x.b - y.b };
+      if (n.op === "*") {
+        if (zx) return { a: x.b * y.a, b: x.b * y.b };
+        if (zy) return { a: y.b * x.a, b: y.b * x.b };
+        return null;
+      }
+      if (n.op === "/") {
+        if (zy && y.b !== 0) return { a: x.a / y.b, b: x.b / y.b };
+        return null;
+      }
+      if (zx && zy) { const v = Math.pow(x.b, y.b); return isFinite(v) ? { a: 0, b: v } : null; }
+      return null;
+    }
+  }
+}
+
+/* ---------- helpers for period arithmetic ---------- */
+/* Is r (>0) a ratio p/q of small integers (q<=1000) within 1e-9 relative? */
+function ratRatio(r) {
+  if (!(r > 0) || !isFinite(r)) return null;
+  let h0 = 0, h1 = 1, k0 = 1, k1 = 0, x = r;
+  for (let i = 0; i < 40; i++) {
+    const a = Math.floor(x);
+    const h2 = a * h1 + h0, k2 = a * k1 + k0;
+    h0 = h1; h1 = h2; k0 = k1; k1 = k2;
+    if (k1 > 1000) return null;
+    if (Math.abs(r - h1 / k1) <= 1e-9 * r) return { p: h1, q: k1 };
+    const frac = x - a;
+    if (frac < 1e-15) break;
+    x = 1 / frac;
+  }
+  return null;
+}
+function gcd(a, b) { while (b) { const t = a % b; a = b; b = t; } return a; }
+function lcm(a, b) { return a / gcd(a, b) * b; }
+function mergePeriods(T1, T2) {
+  const rr = ratRatio(T1 / T2);        // T1/T2 = p/q  ->  q*T1 = p*T2
+  return rr ? rr.q * T1 : null;
+}
+
+/* Numeric helpers used ONLY to double-check an exact result. */
+function frac(x) { return x - Math.floor(x); }
+function isPeriodNumeric(n, P) {
+  let ok = 0;
+  for (let i = 0; i < 80; i++) {
+    const t = P * 4 * (frac(i * 0.6180339887498949 + 0.123) - 0.25) * 3 + 0.0137;
+    const a = evalNode(n, t), b = evalNode(n, t + P);
+    if (!isFinite(a) || !isFinite(b)) continue;
+    if (Math.abs(a - b) > 1e-7 * (1 + Math.abs(a))) return false;
+    ok++;
+  }
+  return ok >= 10;
+}
+function isConstantOverPeriod(n, T) {
+  let mn = Infinity, mx = -Infinity, big = 0;
+  for (let i = 0; i < 128; i++) {
+    const v = evalNode(n, T * (i / 127) + T * 0.00731);
+    if (!isFinite(v)) return false;
+    mn = Math.min(mn, v); mx = Math.max(mx, v); big = Math.max(big, Math.abs(v));
+  }
+  return mx - mn <= 1e-9 * (1 + big);
+}
+function finiteOverPeriod(n, T) {
+  if (DISCRETE) {                                   // check every integer n in one period
+    for (let i = 0; i < T; i++) if (!isFinite(evalNode(n, i))) return false;
+    return true;
+  }
+  for (let i = 0; i < 200; i++) {
+    if (!isFinite(evalNode(n, T * (i / 200) + T * 0.00137))) return false;
+  }
+  return true;
+}
+/* Given a period T, find the smallest T/K that is still a period (numerically verified). */
+function refinePeriod(n, T) {
+  let K = 1;
+  for (let k = 2; k <= 60; k++) {
+    if (isPeriodNumeric(n, T / k)) { const L = lcm(K, k); if (L <= 720) K = L; }
+  }
+  if (K > 1 && isPeriodNumeric(n, T / K)) return { T: T / K, refined: true };
+  return { T: T, refined: false };
+}
+
+/* Discrete-time checks: only INTEGER n matter, and the period N must be an integer. */
+function isPeriodDiscrete(n, N) {
+  let ok = 0;
+  for (let i = -60; i <= 60; i++) {
+    const a = evalNode(n, i), b = evalNode(n, i + N);
+    if (!isFinite(a) || !isFinite(b)) continue;
+    if (Math.abs(a - b) > 1e-7 * (1 + Math.abs(a))) return false;
+    ok++;
+  }
+  return ok >= 10;
+}
+function isConstantDiscrete(n, N) {
+  let mn = Infinity, mx = -Infinity, big = 0;
+  for (let i = 0; i < N; i++) {
+    const v = evalNode(n, i);
+    if (!isFinite(v)) return false;
+    mn = Math.min(mn, v); mx = Math.max(mx, v); big = Math.max(big, Math.abs(v));
+  }
+  return mx - mn <= 1e-9 * (1 + big);
+}
+/* The fundamental period divides every period, so test the divisors of N in increasing order. */
+function refineDiscrete(n, N) {
+  for (let d = 1; d < N; d++) if (N % d === 0 && isPeriodDiscrete(n, d)) return d;
+  return N;
+}
+
+/* sin/cos/tan of (w*t+b). Continuous: T = 2π/|w| (π/|w| for tan).
+   Discrete: periodic only if w/(2π) (w/π for tan) is rational p/q -> N = q;
+   an integer ratio gives a constant; an irrational ratio means no integer N exists. */
+function trigKind(fn, lin, n) {
+  const w = Math.abs(lin.a);
+  const base = fn === "tan" ? Math.PI : 2 * Math.PI;
+  if (!DISCRETE) {
+    const k = { kind: "periodic", T: base / w };
+    if (fn === "tan") k.notes = ["tanPoles"];
+    return k;
+  }
+  const r = w / base;                               // cycles per sample
+  if (Math.round(r) >= 1 && Math.abs(r - Math.round(r)) <= 1e-9 * r) {
+    const v = evalNode(n, 0);                       // same value for every integer n
+    return isFinite(v) ? { kind: "const", value: v } : unk("undefinedConst");
+  }
+  const rr = ratRatio(r);
+  if (!rr) return { kind: "irrat" };
+  const k = { kind: "periodic", T: rr.q };
+  if (fn === "tan") k.notes = ["tanPoles"];
+  return k;
+}
+
+/* ---------- classification of an expression ----------
+   kind:
+     const     -> does not depend on t
+     periodic  -> exactly periodic where defined; T is A period (maybe not the smallest)
+     quasi     -> (continuous) sum/product of periodic parts whose periods have an irrational ratio
+     irrat     -> (discrete) sinusoid whose w/2π is irrational: no integer period exists
+     aper      -> provably not periodic (monotone / unbounded growth / decay patterns)
+     unknown   -> the rules cannot decide (inconclusive)                              */
+function unk(why) { return { kind: "unknown", why: why }; }
+
+function classifyNode(n) {
+  if (!hasT(n)) {
+    const v = evalNode(n, 0);
+    return isFinite(v) ? { kind: "const", value: v } : unk("undefinedConst");
+  }
+  const lin = linearForm(n);
+  if (lin) return Math.abs(lin.a) < EPS ? { kind: "const", value: lin.b } : { kind: "aper", why: "linear" };
+  if (n.type === "neg") return classifyNode(n.a);
+  if (n.type === "call") return classifyCall(n);
+  return classifyBin(n);
+}
+
+function classifyCall(n) {
+  const fn = n.fn, lin = linearForm(n.a);
+  if (lin && Math.abs(lin.a) >= EPS) {
+    const w = Math.abs(lin.a);
+    if (fn === "sin" || fn === "cos" || fn === "tan") return trigKind(fn, lin, n);
+    if (fn === "exp") return { kind: "aper", why: "monotone" };
+    if (fn === "abs") return { kind: "aper", why: "linear" };
+    if (fn === "sqrt") return { kind: "aper", why: "sqrtDomain", notes: ["sqrtDomain"] };
+  }
+  const k = classifyNode(n.a);
+  if (k.kind === "const") {
+    const v = FUNCS[fn](k.value);
+    return isFinite(v) ? { kind: "const", value: v } : unk("undefinedConst");
+  }
+  if (k.kind === "periodic") {
+    if (!finiteOverPeriod(n, k.T)) return unk("domain");
+    return { kind: "periodic", T: k.T, notes: k.notes };
+  }
+  return unk("nonlinearArg");
+}
+
+function combinePeriodic(A, B) {
+  if (DISCRETE) {                                   // integer periods always have a common multiple
+    const N = lcm(A.T, B.T);
+    return N <= MAX_DISCRETE_PERIOD ? { kind: "periodic", T: N } : unk("periodTooLarge");
+  }
+  const T = mergePeriods(A.T, B.T);
+  return T ? { kind: "periodic", T: T } : { kind: "quasi" };
+}
+
+function classifyBin(n) {
+  const op = n.op;
+  const A = classifyNode(n.a), B = classifyNode(n.b);
+  if (A.kind === "unknown") return A;
+  if (B.kind === "unknown") return B;
+  const notes = [].concat(A.notes || [], B.notes || []);
+  const out = (r) => { if (notes.length) r.notes = notes; return r; };
+
+  /* Discrete only: an "irrat" part (sinusoid with irrational w/2π) stays decidable only when
+     combined with a constant; anything else could cancel or change the period, so we stop. */
+  if (A.kind === "irrat" || B.kind === "irrat") {
+    if (op === "^" || (op === "/" && A.kind !== "irrat")) return unk("sumAmbiguous");
+    const c = A.kind === "irrat" ? B : A;
+    if (c.kind !== "const") return unk("sumAmbiguous");
+    if (op === "*" && Math.abs(c.value) < EPS) return { kind: "const", value: 0 };
+    if (op === "/" && Math.abs(c.value) < EPS) return unk("undefinedConst");
+    return out({ kind: "irrat" });
+  }
+
+  if (op === "^") {
+    if (B.kind !== "const") return unk("variableExponent");
+    if (A.kind === "const") { const v = Math.pow(A.value, B.value); return isFinite(v) ? { kind: "const", value: v } : unk("undefinedConst"); }
+    if (Math.abs(B.value) < EPS) return { kind: "const", value: 1 };
+    if (A.kind === "periodic") return finiteOverPeriod(n, A.T) ? out({ kind: "periodic", T: A.T }) : unk("domain");
+    if (A.kind === "aper") return out({ kind: "aper", why: "growthPower" });
+    return unk("sumAmbiguous");
+  }
+  if (op === "+" || op === "-") {
+    if (A.kind === "const") return out(Object.assign({}, B));
+    if (B.kind === "const") return out(Object.assign({}, A));
+    if (A.kind === "periodic" && B.kind === "periodic") return out(combinePeriodic(A, B));
+    if ((A.kind === "aper" && B.kind === "periodic") || (A.kind === "periodic" && B.kind === "aper")) return out({ kind: "aper", why: "growthPlusPeriodic" });
+    return unk("sumAmbiguous");
+  }
+  if (op === "*") {
+    if (sameNode(n.a, n.b)) return A;                      // x*x behaves like x^2
+    if (A.kind === "const" || B.kind === "const") {
+      const c = A.kind === "const" ? A : B, o = A.kind === "const" ? B : A;
+      return Math.abs(c.value) < EPS ? { kind: "const", value: 0 } : out(Object.assign({}, o));
+    }
+    if (A.kind === "periodic" && B.kind === "periodic") return out(combinePeriodic(A, B));
+    if ((A.kind === "aper" && B.kind === "periodic") || (A.kind === "periodic" && B.kind === "aper")) return out({ kind: "aper", why: "growthTimesPeriodic" });
+    return unk("sumAmbiguous");
+  }
+  /* division */
+  if (B.kind === "const") return Math.abs(B.value) < EPS ? unk("undefinedConst") : out(Object.assign({}, A));
+  if (A.kind === "const") {
+    if (Math.abs(A.value) < EPS) return { kind: "const", value: 0 };
+    if (B.kind === "periodic") return out({ kind: "periodic", T: B.T });
+    if (B.kind === "aper") return out({ kind: "aper", why: "decay" });
+    return unk("sumAmbiguous");
+  }
+  if (A.kind === "periodic" && B.kind === "periodic") return out(combinePeriodic(A, B));
+  if ((A.kind === "periodic" && B.kind === "aper") || (A.kind === "aper" && B.kind === "periodic")) return out({ kind: "aper", why: A.kind === "periodic" ? "decay" : "growthTimesPeriodic" });
+  return unk("sumAmbiguous");
+}
+
+/* Is the expression (after peeling constants) exactly one sin/cos/tan of a linear argument? */
+function isSimpleSinusoid(n) {
+  for (;;) {
+    if (n.type === "neg") { n = n.a; continue; }
+    if (n.type === "bin" && n.op !== "^") {
+      if (!hasT(n.b)) { n = n.a; continue; }
+      if (!hasT(n.a) && n.op !== "/") { n = n.b; continue; }
+      return false;
+    }
+    break;
+  }
+  if (n.type !== "call" || (n.fn !== "sin" && n.fn !== "cos" && n.fn !== "tan")) return false;
+  const l = linearForm(n.a);
+  return !!l && Math.abs(l.a) >= EPS;
+}
+
+/* Main entry. Returns {status, T, f, omega, method, reason, notes}
+   status: periodic | aperiodic | constant | inconclusive
+   method (for periodic): exactSimple | exactVerified
+   method (for aperiodic): rule | ratioTest                                    */
+function analyze(ast, discrete) {
+  DISCRETE = !!discrete;
+  try {
+    return analyzeInner(ast);
+  } finally {
+    DISCRETE = false;
+  }
+}
+/* For a discrete signal the same fields mean: T = N (samples), f = 1/N (cycles/sample),
+   omega = 2π/N (rad/sample). method (aperiodic, discrete): rule | ratioTestD */
+function analyzeInner(ast) {
+  const k = classifyNode(ast);
+  const notes = k.notes ? k.notes.slice() : [];
+  switch (k.kind) {
+    case "const": return { status: "constant", notes: notes };
+    case "aper": return { status: "aperiodic", method: "rule", reason: k.why, notes: notes };
+    case "quasi": return { status: "aperiodic", method: "ratioTest", reason: "quasi", notes: notes };
+    case "irrat": return { status: "aperiodic", method: "ratioTestD", reason: "irrat", notes: notes };
+    case "unknown": return { status: "inconclusive", reason: k.why, notes: notes };
+    default: break;
+  }
+  if (!(k.T > 0) || !isFinite(k.T)) return { status: "inconclusive", reason: "domain", notes: notes };
+  const constant = DISCRETE ? isConstantDiscrete(ast, k.T) : isConstantOverPeriod(ast, k.T);
+  if (constant) return { status: "constant", notes: notes };
+  let T = k.T, method = "exactSimple";
+  if (!isSimpleSinusoid(ast)) {
+    T = DISCRETE ? refineDiscrete(ast, k.T) : refinePeriod(ast, k.T).T;
+    method = "exactVerified";
+  }
+  return { status: "periodic", T: T, f: 1 / T, omega: 2 * Math.PI / T, method: method, notes: notes };
+}
+
+/* Numerical estimate of a period from samples (autocorrelation). NOT a proof. */
+function estimatePeriodNumeric(xs, dt) {
+  let N = xs.length;
+  if (N < 40) return null;
+  let stride = 1;
+  if (N > 2000) stride = Math.ceil(N / 2000);
+  const y = [];
+  for (let i = 0; i < N; i += stride) { if (!isFinite(xs[i])) return null; y.push(xs[i]); }
+  dt *= stride; N = y.length;
+  let mean = 0; for (const v of y) mean += v; mean /= N;
+  let e = 0; for (let i = 0; i < N; i++) { y[i] -= mean; e += y[i] * y[i]; }
+  if (e < 1e-24) return null;
+  const maxLag = Math.floor(N / 2);
+  const r = new Float64Array(maxLag + 2);
+  for (let k = 1; k <= maxLag + 1 && k < N; k++) {
+    let s = 0, a = 0, b = 0;
+    for (let i = 0; i < N - k; i++) { s += y[i] * y[i + k]; a += y[i] * y[i]; b += y[i + k] * y[i + k]; }
+    r[k] = s / (Math.sqrt(a * b) || 1);
+  }
+  let low = false;
+  for (let k = 1; k <= maxLag; k++) {
+    if (r[k] < 0.5) low = true;
+    if (low && r[k] > 0.995 && r[k] >= r[k - 1] && r[k] >= r[k + 1]) return k * dt;
+  }
+  return null;
+}
+/*CORE-END*/
+</script>
+
+<script>
+"use strict";
+/* =====================================================================
+   UI: texts (Arabic / English), plotting on <canvas>, results panel.
+   ===================================================================== */
+const I18N = {
+  ar: {
+    title: "مختبر تحليل الإشارات",
+    subtitle: "إشارات دورية وغير دورية في الزمن المستمر والمتقطع",
+    secInput: "إدخال الإشارة",
+    lblExpr: "المعادلة x(t) =",
+    lblT0: "زمن البداية (ثانية)",
+    lblT1: "زمن النهاية (ثانية)",
+    lblN: "عدد العينات",
+    btnPlot: "ارسم الإشارة",
+    lblExamples: "أمثلة جاهزة:",
+    secPlot: "الرسم البياني",
+    secResults: "النتائج",
+    secAbout: "ما المقصود بالدورية؟ وحدود هذه الأداة",
+    rEquation: "المعادلة",
+    rStatus: "الحكم",
+    rPeriod: "الدورة الأساسية T",
+    rFreq: "التردد f = 1/T",
+    rOmega: "التردد الزاوي ω = 2π/T",
+    rMethod: "طريقة الحكم",
+    rInterval: "نافذة الرسم",
+    rNotes: "ملاحظات",
+    na: "غير منطبق",
+    sec: "ثانية",
+    hz: "هرتز",
+    rad: "راديان/ثانية",
+    status_periodic: "دورية (periodic)",
+    status_aperiodic: "غير دورية (aperiodic)",
+    status_constant: "ثابتة (لا تعتمد على t)",
+    status_inconclusive: "غير محسومة (inconclusive)",
+    constNote: "الإشارة الثابتة تحقق x(t)=x(t+T) لكل T، فلا توجد دورة أساسية موجبة صغرى.",
+    method_exactSimple: "نتيجة رياضية دقيقة: جيب/جيب تمام/ظل لوسيط خطي، T = 2π/|ω| (أو π/|ω| للظل).",
+    method_exactVerified: "الدورة مشتقة رياضياً من دورات المركّبات (نسبة دوراتها عدد نسبي)، ثم جرى التحقق عددياً من عدم وجود دورة أصغر.",
+    method_rule: "نتيجة رياضية بقاعدة: ",
+    method_ratioTest: "نسبة الدورات غير نسبية ضمن دقة الحساب (اختبار عددي بتسامح 1e-9 ومقام ≤ 1000) — الحكم هنا ليس برهاناً صارماً.",
+    method_none: "لا يمكن الحكم رياضياً بقواعد الأداة: ",
+    reason_linear: "الدالة خطية/قيمة مطلقة لدالة خطية، متغيرة بلا تكرار.",
+    reason_monotone: "exp لوسيط خطي رتيبة تماماً (x(t+T) = e^{aT}·x(t) ≠ x(t) لكل T>0).",
+    reason_sqrtDomain: "الجذر معرّف على نصف المحور فقط، ولا يمكن تحقق x(t)=x(t+T) لكل t.",
+    reason_growthPower: "أُس ثابت لدالة متزايدة/متناقصة غير دورية يبقيها غير دورية.",
+    reason_growthPlusPeriodic: "غير دورية + دورية = غير دورية (الجزء غير الدوري يفسد التكرار).",
+    reason_growthTimesPeriodic: "ضرب/قسمة دالة غير دورية في دالة دورية غير ثابتة يعطي إشارة غير دورية (مثل t·sin t).",
+    reason_decay: "قسمة على دالة غير دورية تجعل الإشارة تتلاشى دون تكرار.",
+    reason_quasi: "مجموع/جداء مركّبات دورية نسبة دوراتها غير نسبية (شبه دورية).",
+    why_nonlinearArg: "وسيط الدالة ليس خطياً في t ولا دورياً (مثل sin(t*t)).",
+    why_domain: "الدالة غير معرّفة على جزء من الدورة (مثل sqrt لقيمة سالبة).",
+    why_variableExponent: "الأس يعتمد على t.",
+    why_sumAmbiguous: "جمع/ضرب مركّبات غير دورية قد يلغي بعضها بعضاً (مثل t - t)، والأداة لا تحسم ذلك.",
+    why_undefinedConst: "جزء ثابت من التعبير غير معرّف (قسمة على صفر، مثلاً).",
+    note_tanPoles: "tan له أقطاب (قيم لانهائية)؛ الدورية تُفهم حيثما كانت الدالة معرّفة.",
+    note_sqrtDomain: "تحتوي المعادلة sqrt على وسيط يصبح سالباً في جزء من المحور.",
+    note_windowShort: "نافذة الرسم أقصر من دورة واحدة؛ زد نهاية الزمن لتشاهد التكرار.",
+    note_windowPeriods: "تحتوي النافذة تقريباً على {n} دورة.",
+    note_gaps: "{n} عينة غير معرّفة (NaN/∞) — تُرسم كفراغ في المنحنى.",
+    note_numEst: "تقدير عددي للدورة من العينات: T ≈ {T} ثانية (تقدير وليس برهاناً).",
+    note_numNone: "لم يُكتشف تكرار داخل النافذة [{a}, {b}] — هذا لا يثبت أن الإشارة غير دورية.",
+    note_clipped: "قيم كبيرة جداً (مثل أقطاب tan) — جرى قص المحور الرأسي لتبقى الصورة مقروءة.",
+    xlabel: "الزمن t (ثانية)",
+    ylabel: "السعة x(t)",
+    noFinite: "لا توجد قيم معرّفة في هذه النافذة.",
+    emptyPlot: "اكتب معادلة (أو اضغط أحد الأمثلة) ثم اضغط «ارسم الإشارة».",
+    err_empty: "أدخل معادلة.",
+    err_tooLong: "المعادلة أطول من {max} حرفاً.",
+    err_badChar: "حرف غير مسموح '{ch}' عند الموضع {pos}. المسموح: الأرقام، t، pi، + - * / ^ ( ) والدوال sin cos tan exp sqrt abs.",
+    err_badNumber: "رقم غير صالح عند الموضع {pos}.",
+    err_unsupportedFunc: "الدالة '{name}' غير مدعومة (عند الموضع {pos}). المدعوم: sin, cos, tan, exp, sqrt, abs.",
+    err_unknownIdent: "الاسم '{name}' غير معروف (عند الموضع {pos}). المتغير الوحيد هو {v}، والثابت الوحيد pi.",
+    err_needParens: "الدالة '{name}' تحتاج أقواساً، مثل {name}(t) (عند الموضع {pos}).",
+    err_missingParen: "قوس إغلاق ناقص عند الموضع {pos}.",
+    err_missingMul: "علامة ضرب ناقصة قبل الموضع {pos}. اكتب 2*t بدلاً من 2t.",
+    err_unexpected: "رمز غير متوقع عند الموضع {pos}.",
+    err_field: "قيمة غير صالحة في الحقل: {f}.",
+    modeCont: "مستمرة x(t)",
+    modeDisc: "متقطعة x[n]",
+    lblExprD: "المعادلة x[n] =",
+    lblN0: "بداية المؤشر n (عدد صحيح)",
+    lblN1: "نهاية المؤشر n (عدد صحيح)",
+    lblExamplesD: "أمثلة جاهزة:",
+    rPeriodD: "الدورة الأساسية N",
+    rFreqD: "التردد الأساسي f₀ = 1/N",
+    rOmegaD: "ω₀ = 2π/N",
+    unitSamples: "عينة",
+    unitCps: "دورة/عينة",
+    unitRps: "راديان/عينة",
+    constNoteD: "الإشارة الثابتة تحقق x[n]=x[n+N] لكل N، فلا توجد دورة أساسية موجبة صغرى.",
+    method_ratioTestD: "النسبة ω₀/2π غير نسبية ضمن دقة الحساب (اختبار عددي بتسامح 1e-9 ومقام ≤ 1000)، فلا يوجد عدد صحيح N يحقق x[n]=x[n+N]. الحكم اختبار عددي وليس برهاناً صارماً.",
+    why_periodTooLarge: "الدورة المشتركة تتجاوز مليون عينة؛ لا تحسم الأداة هذه الحالة.",
+    note_numEstD: "تقدير عددي للدورة من العينات: N ≈ {T} عينة (تقدير وليس برهاناً).",
+    note_windowShortD: "النافذة أقصر من دورة واحدة؛ زد نهاية المؤشر n لترى التكرار.",
+    xlabelD: "المؤشر المتقطع n (عينة)",
+    ylabelD: "السعة x[n]",
+    err_intN: "بداية ونهاية المؤشر n يجب أن تكونا عددين صحيحين.",
+    err_rangeD: "عدد القيم المعروضة (من بداية n إلى نهايتها) يجب ألا يزيد على 5000.",
+    aboutDiscHtml:
+      "<p><b>الإشارات المتقطعة x[n]:</b> المتغير n عدد صحيح، والإشارة دورية إذا وُجد عدد صحيح <code>N &gt; 0</code> يحقق <code>x[n] = x[n+N]</code> لكل n.</p>" +
+      "<ul><li><code>cos(ω₀·n)</code> دورية <b>فقط</b> إذا كان <code>ω₀/2π</code> عدداً نسبياً <code>p/q</code> (مختزلاً)، وعندها <code>N = q</code>. مثال: <code>cos(pi*n/4)</code> لها <code>N = 8</code>، أما <code>cos(n)</code> فغير دورية لأن <code>1/2π</code> غير نسبي.</li>" +
+      "<li>إذا كان <code>ω₀/2π</code> عدداً صحيحاً (مثل <code>cos(2*pi*n)</code>) فالإشارة ثابتة.</li>" +
+      "<li>جمع إشارات متقطعة دورية يعطي دائماً إشارة دورية دورتها المضاعف المشترك الأصغر لدوراتها (ثم يُتحقق عددياً من عدم وجود دورة أصغر).</li>" +
+      "<li>الحكم «غير دورية» لجيب نسبته غير نسبية اختبار عددي بدقة محدودة، لا برهان صارم.</li></ul>",
+    err_interval: "يجب أن يكون زمن النهاية أكبر من زمن البداية.",
+    err_samples: "عدد العينات يجب أن يكون عدداً صحيحاً بين 10 و 20000.",
+    hover: "مرّر المؤشر فوق الرسم لقراءة القيم.",
+    aboutHtml:
+      "<p><b>التعريف:</b> الإشارة <code>x(t)</code> دورية إذا وُجد <code>T &gt; 0</code> يحقق <code>x(t) = x(t+T)</code> لكل t. أصغر T كهذا يسمى الدورة الأساسية، ومنه <code>f = 1/T</code> و <code>ω = 2π/T</code>.</p>" +
+      "<p>للجيب <code>sin(ω·t)</code> مع ω ≠ 0: <code>T = 2π/|ω|</code>. مثال: <code>sin(2*pi*t)</code> دورتها 1 ثانية، و<code>cos(4*pi*t)</code> دورتها 0.5 ثانية. أما <code>exp(t)</code> فرتيبة تماماً فلا تتكرر أبداً.</p>" +
+      "<p><b>كيف تحكم الأداة؟</b> تحلل شجرة المعادلة بقواعد رياضية (وليس بالنظر إلى الرسم): جيب/جيب تمام/ظل لوسيط خطي، ومجموع أو جداء مركّبات دورية، ثم تتحقق عددياً من أن الدورة الناتجة هي الأصغر.</p>" +
+      "<p><b>الحدود:</b></p><ul>" +
+      "<li>غياب التكرار داخل نافذة الرسم لا يعني أن الإشارة غير دورية؛ لذلك تُعرض أي نتيجة عددية بوصفها تقديراً فقط.</li>" +
+      "<li>الحالات التي لا تغطيها القواعد (مثل <code>sin(t*t)</code> أو <code>t + exp(t)</code>) تُعلَن «غير محسومة» بدلاً من التخمين.</li>" +
+      "<li>مجموع جيبين نسبة ترددهما غير نسبية (مثل <code>sin(t)+sin(pi*t)</code>) غير دوري؛ لكن الحاسوب لا يميّز بين عدد نسبي وغير نسبي إلا ضمن دقة محدودة، لذلك يُعرض الحكم بوصفه اختباراً عددياً.</li>" +
+      "<li>الدوال المعرّفة على جزء من المحور فقط (مثل <code>sqrt(t)</code>) لا تحقق شرط «لكل t».</li>" +
+      "<li>الرسم عيّنات متقطعة موصولة بخطوط؛ زد عدد العينات للترددات العالية.</li></ul>"
+  },
+  en: {
+    title: "Signal Analysis Lab",
+    subtitle: "Periodic and aperiodic signals in continuous and discrete time",
+    secInput: "Signal input",
+    lblExpr: "Equation x(t) =",
+    lblT0: "Start time (s)",
+    lblT1: "End time (s)",
+    lblN: "Number of samples",
+    btnPlot: "Plot Signal",
+    lblExamples: "Examples:",
+    secPlot: "Graph",
+    secResults: "Results",
+    secAbout: "What does periodic mean? Limits of this tool",
+    rEquation: "Equation",
+    rStatus: "Assessment",
+    rPeriod: "Fundamental period T",
+    rFreq: "Frequency f = 1/T",
+    rOmega: "Angular frequency ω = 2π/T",
+    rMethod: "How it was decided",
+    rInterval: "Plot window",
+    rNotes: "Notes",
+    na: "not applicable",
+    sec: "s",
+    hz: "Hz",
+    rad: "rad/s",
+    status_periodic: "Periodic",
+    status_aperiodic: "Aperiodic",
+    status_constant: "Constant (independent of t)",
+    status_inconclusive: "Inconclusive",
+    constNote: "A constant satisfies x(t)=x(t+T) for every T, so it has no smallest positive period.",
+    method_exactSimple: "Exact mathematical result: sin/cos/tan of a linear argument, T = 2π/|ω| (π/|ω| for tan).",
+    method_exactVerified: "The period was derived mathematically from the component periods (their ratio is rational); a numerical check confirmed no smaller period exists.",
+    method_rule: "Exact mathematical rule: ",
+    method_ratioTest: "The period ratio is irrational within numerical precision (test with tolerance 1e-9, denominator ≤ 1000) — this verdict is not a strict proof.",
+    method_none: "The tool's rules cannot decide: ",
+    reason_linear: "The function is linear (or |linear|), so it never repeats.",
+    reason_monotone: "exp of a linear argument is strictly monotonic (x(t+T) = e^{aT}·x(t) ≠ x(t) for T>0).",
+    reason_sqrtDomain: "sqrt is defined only on part of the time axis, so x(t)=x(t+T) cannot hold for all t.",
+    reason_growthPower: "A constant power of a non-periodic function stays non-periodic.",
+    reason_growthPlusPeriodic: "non-periodic + periodic = non-periodic (the non-periodic part prevents repetition).",
+    reason_growthTimesPeriodic: "A non-periodic factor times/over a non-constant periodic factor is non-periodic (like t·sin t).",
+    reason_decay: "Dividing by a non-periodic function makes the signal fade without repeating.",
+    reason_quasi: "Sum/product of periodic parts whose periods have an irrational ratio (almost periodic).",
+    why_nonlinearArg: "The function's argument is neither linear in t nor periodic (e.g. sin(t*t)).",
+    why_domain: "The function is undefined on part of a period (e.g. sqrt of a negative value).",
+    why_variableExponent: "The exponent depends on t.",
+    why_sumAmbiguous: "Combining non-periodic parts can cancel them (e.g. t - t); the tool does not decide this.",
+    why_undefinedConst: "A constant part of the expression is undefined (e.g. division by zero).",
+    note_tanPoles: "tan has poles (infinite values); periodicity is understood where the function is defined.",
+    note_sqrtDomain: "The equation contains a sqrt whose argument becomes negative on part of the axis.",
+    note_windowShort: "The plot window is shorter than one period; increase the end time to see the repetition.",
+    note_windowPeriods: "The window contains about {n} periods.",
+    note_gaps: "{n} samples are undefined (NaN/∞) and appear as gaps in the curve.",
+    note_numEst: "Numerical period estimate from the samples: T ≈ {T} s (an estimate, not a proof).",
+    note_numNone: "No repetition was detected inside the window [{a}, {b}] — this does NOT prove the signal is aperiodic.",
+    note_clipped: "Very large values (e.g. tan poles) — the vertical axis was clipped to keep the plot readable.",
+    xlabel: "Time t (s)",
+    ylabel: "Amplitude x(t)",
+    noFinite: "No defined values in this window.",
+    emptyPlot: "Type an equation (or click an example), then press “Plot Signal”.",
+    err_empty: "Enter an equation.",
+    err_tooLong: "The equation is longer than {max} characters.",
+    err_badChar: "Illegal character '{ch}' at position {pos}. Allowed: digits, t, pi, + - * / ^ ( ) and sin cos tan exp sqrt abs.",
+    err_badNumber: "Invalid number at position {pos}.",
+    err_unsupportedFunc: "Function '{name}' is not supported (position {pos}). Supported: sin, cos, tan, exp, sqrt, abs.",
+    err_unknownIdent: "Unknown name '{name}' (position {pos}). The only variable is {v} and the only constant is pi.",
+    err_needParens: "Function '{name}' needs parentheses, e.g. {name}(t) (position {pos}).",
+    err_missingParen: "Missing closing parenthesis at position {pos}.",
+    err_missingMul: "Missing multiplication sign before position {pos}. Write 2*t instead of 2t.",
+    err_unexpected: "Unexpected symbol at position {pos}.",
+    err_field: "Invalid value in field: {f}.",
+    modeCont: "Continuous x(t)",
+    modeDisc: "Discrete x[n]",
+    lblExprD: "Equation x[n] =",
+    lblN0: "Start index n (integer)",
+    lblN1: "End index n (integer)",
+    lblExamplesD: "Examples:",
+    rPeriodD: "Fundamental period N",
+    rFreqD: "Fundamental frequency f₀ = 1/N",
+    rOmegaD: "ω₀ = 2π/N",
+    unitSamples: "samples",
+    unitCps: "cycles/sample",
+    unitRps: "rad/sample",
+    constNoteD: "A constant satisfies x[n]=x[n+N] for every N, so it has no smallest positive period.",
+    method_ratioTestD: "The ratio ω₀/2π is irrational within numerical precision (test with tolerance 1e-9, denominator ≤ 1000), so no integer N satisfies x[n]=x[n+N]. This verdict is a numerical test, not a strict proof.",
+    why_periodTooLarge: "The common period exceeds one million samples; the tool does not decide this case.",
+    note_numEstD: "Numerical period estimate from the samples: N ≈ {T} samples (an estimate, not a proof).",
+    note_windowShortD: "The window is shorter than one period; increase the end index n to see the repetition.",
+    xlabelD: "Discrete index n (samples)",
+    ylabelD: "Amplitude x[n]",
+    err_intN: "The start and end of n must be integers.",
+    err_rangeD: "The number of displayed values (from start n to end n) must not exceed 5000.",
+    aboutDiscHtml:
+      "<p><b>Discrete-time signals x[n]:</b> n is an integer, and the signal is periodic if some integer <code>N &gt; 0</code> satisfies <code>x[n] = x[n+N]</code> for all n.</p>" +
+      "<ul><li><code>cos(ω₀·n)</code> is periodic <b>only if</b> <code>ω₀/2π</code> is a rational number <code>p/q</code> (in lowest terms); then <code>N = q</code>. Example: <code>cos(pi*n/4)</code> has <code>N = 8</code>, but <code>cos(n)</code> is aperiodic because <code>1/2π</code> is irrational.</li>" +
+      "<li>If <code>ω₀/2π</code> is an integer (e.g. <code>cos(2*pi*n)</code>) the signal is constant.</li>" +
+      "<li>A sum of periodic discrete signals is always periodic, with period equal to the least common multiple of their periods (then checked numerically for a smaller one).</li>" +
+      "<li>An “aperiodic” verdict for a sinusoid with an irrational ratio is a numerical test with finite precision, not a strict proof.</li></ul>",
+    err_interval: "End time must be greater than start time.",
+    err_samples: "Number of samples must be an integer between 10 and 20000.",
+    hover: "Move the pointer over the plot to read values.",
+    aboutHtml:
+      "<p><b>Definition:</b> a signal <code>x(t)</code> is periodic if some <code>T &gt; 0</code> satisfies <code>x(t) = x(t+T)</code> for all t. The smallest such T is the fundamental period; then <code>f = 1/T</code> and <code>ω = 2π/T</code>.</p>" +
+      "<p>For <code>sin(ω·t)</code> with ω ≠ 0: <code>T = 2π/|ω|</code>. Example: <code>sin(2*pi*t)</code> has T = 1 s and <code>cos(4*pi*t)</code> has T = 0.5 s. <code>exp(t)</code> is strictly monotonic, so it never repeats.</p>" +
+      "<p><b>How the tool decides:</b> it analyses the expression tree with mathematical rules (not by looking at the plot): sin/cos/tan of a linear argument, sums or products of periodic parts, followed by a numerical check that the resulting period is the smallest one.</p>" +
+      "<p><b>Limitations:</b></p><ul>" +
+      "<li>Not seeing a repetition inside the plot window does not mean a signal is aperiodic; numerical results are therefore shown only as estimates.</li>" +
+      "<li>Cases the rules do not cover (e.g. <code>sin(t*t)</code> or <code>t + exp(t)</code>) are reported as “inconclusive” instead of guessing.</li>" +
+      "<li>A sum of sinusoids whose frequency ratio is irrational (e.g. <code>sin(t)+sin(pi*t)</code>) is aperiodic, but a computer can only distinguish rational from irrational within finite precision, so that verdict is a numerical test.</li>" +
+      "<li>Functions defined on only part of the axis (e.g. <code>sqrt(t)</code>) fail the “for all t” condition.</li>" +
+      "<li>The plot is discrete samples joined by lines; use more samples for high frequencies.</li></ul>"
+  }
+};
+
+const EXAMPLES = [
+  { expr: "exp(t)",             t0: 0,  t1: 5 },
+  { expr: "sin(2*pi*t)",        t0: 0,  t1: 3 },
+  { expr: "cos(4*pi*t)",        t0: 0,  t1: 2 },
+  { expr: "sin(t)+cos(2*t)",    t0: 0,  t1: 20 },
+  { expr: "abs(sin(t))",        t0: 0,  t1: 12 },
+  { expr: "sin(t)+sin(pi*t)",   t0: 0,  t1: 60 }
+];
+
+const EXAMPLES_DISC = [
+  { expr: "cos(pi*n/4)",                t0: 0, t1: 24 },
+  { expr: "sin(2*pi*n/5)",              t0: 0, t1: 20 },
+  { expr: "cos(n)",                     t0: 0, t1: 40 },
+  { expr: "cos(pi*n/4)+sin(pi*n/6)",    t0: 0, t1: 48 },
+  { expr: "sin(0.3*pi*n)",              t0: 0, t1: 40 },
+  { expr: "exp(0.2*n)",                 t0: 0, t1: 20 }
+];
+
+let lang = "ar";
+let mode = "cont";        // "cont" = x(t), "disc" = x[n]
+let lastData = null;      // {ts, xs, t0, t1, yr, disc}
+let lastResult = null;    // data needed to re-render texts when switching language
+let lastError = null;     // {code, params} or {raw} - kept so the message can be re-translated
+
+const $ = (id) => document.getElementById(id);
+function tr(key, params) {
+  let s = (I18N[lang][key] !== undefined) ? I18N[lang][key] : key;
+  if (params) for (const k in params) s = s.split("{" + k + "}").join(String(params[k]));
+  return s;
+}
+/* Rebuild the red message in the CURRENT language from the stored error. */
+function renderMessage() {
+  $("msg").textContent = "";
+  if (!lastError) return;
+  if (lastError.raw !== undefined) { showMessage("err", lastError.raw); return; }
+  const p = Object.assign({}, lastError.params);
+  if (p.fKey) p.f = tr(p.fKey);                 // field names are translated at display time
+  showMessage("err", tr("err_" + lastError.code, p));
+}
+function buildExamples() {
+  const box = $("examples");
+  box.textContent = "";
+  const list = mode === "disc" ? EXAMPLES_DISC : EXAMPLES;
+  list.forEach((ex) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = (mode === "disc" ? "x[n] = " : "x(t) = ") + ex.expr;
+    b.addEventListener("click", () => {
+      $("expr").value = ex.expr; $("t0").value = ex.t0; $("t1").value = ex.t1; $("ns").value = 1000;
+      plotSignal();
+    });
+    box.appendChild(b);
+  });
+}
+function applyLang() {
+  const d = mode === "disc";
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  $("langBtn").textContent = lang === "ar" ? "English" : "العربية";
+  document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = tr(el.getAttribute("data-i18n")); });
+  $("modeCont").textContent = tr("modeCont");
+  $("modeDisc").textContent = tr("modeDisc");
+  $("modeCont").classList.toggle("on", !d);
+  $("modeDisc").classList.toggle("on", d);
+  $("lblExprEl").textContent = tr(d ? "lblExprD" : "lblExpr");
+  $("lblT0El").textContent = tr(d ? "lblN0" : "lblT0");
+  $("lblT1El").textContent = tr(d ? "lblN1" : "lblT1");
+  $("lblExamplesEl").textContent = tr(d ? "lblExamplesD" : "lblExamples");
+  $("nsBox").hidden = d;                         // in discrete mode every integer n is shown
+  $("about").innerHTML = tr("aboutHtml") + tr("aboutDiscHtml");
+  $("hover").textContent = lastData ? tr("hover") : "";
+  document.title = tr("title");
+  renderMessage();
+  if (lastResult) renderResults(lastResult);
+  drawPlot();
+}
+/* Switch between continuous x(t) and discrete x[n]: load that mode's first example. */
+function setMode(newMode) {
+  if (newMode === mode) return;
+  mode = newMode;
+  const first = mode === "disc" ? EXAMPLES_DISC[0] : EXAMPLES[1];
+  $("expr").value = "";                                  // start empty; the example is only a placeholder
+  $("expr").placeholder = first.expr;
+  $("t0").value = 0; $("t1").value = mode === "disc" ? 24 : 3; $("ns").value = 1000;
+  lastError = null; lastData = null; lastResult = null;
+  $("resCard").hidden = true;
+  $("resBody").textContent = "";
+  $("hover").textContent = "";
+  buildExamples();
+  applyLang();
+}
+
+/* Accept Arabic-Indic digits and decimal commas typed on an Arabic keyboard. */
+function normalizeDigits(s) {
+  return String(s)
+    .replace(/[\u0660-\u0669]/g, (c) => String(c.charCodeAt(0) - 0x0660))
+    .replace(/[\u06F0-\u06F9]/g, (c) => String(c.charCodeAt(0) - 0x06F0))
+    .replace(/[\u066B\u060C,]/g, ".")
+    .replace(/[\u00D7]/g, "*");
+}
+function readNumber(id, labelKey) {
+  const raw = normalizeDigits($(id).value).trim();
+  if (raw === "" || !/^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(raw)) throw new SignalError("field", { fKey: labelKey });
+  const v = Number(raw);
+  if (!isFinite(v)) throw new SignalError("field", { fKey: labelKey });
+  return v;
+}
+
+function fmt(x) {
+  if (!isFinite(x)) return String(x);
+  if (x === 0) return "0";
+  const a = Math.abs(x);
+  if (a >= 1e6 || a < 1e-4) return x.toExponential(5);
+  return String(parseFloat(x.toPrecision(8)));
+}
+/* Show T also as a rational multiple of pi when it is one, e.g. 2π, π/2. */
+function piForm(x) {
+  const rr = ratRatio(x / Math.PI);
+  if (!rr || rr.q > 12 || rr.p > 24) return "";
+  const num = rr.p === 1 ? "π" : rr.p + "π";
+  return rr.q === 1 ? num : num + "/" + rr.q;
+}
+
+/* ------------------------------- plotting ------------------------------- */
+function niceStep(range, target) {
+  const raw = range / target;
+  const p = Math.pow(10, Math.floor(Math.log10(raw)));
+  const m = raw / p;
+  return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * p;
+}
+function ticks(min, max, target) {
+  const step = niceStep(max - min, target);
+  const out = [];
+  for (let v = Math.ceil(min / step - 1e-9) * step; v <= max + step * 1e-9; v += step) out.push(Math.abs(v) < step * 1e-9 ? 0 : v);
+  return { list: out, step: step };
+}
+function tickLabel(v, step) {
+  if (v === 0) return "0";
+  if (Math.abs(v) >= 1e5 || Math.abs(v) < 1e-3) return v.toExponential(1);
+  const dec = Math.min(8, Math.max(0, -Math.floor(Math.log10(step) + 1e-9)));
+  return v.toFixed(dec);
+}
+/* Choose the vertical range. If a few huge values (tan poles) dominate, use percentiles. */
+function chooseRange(xs, includeZero) {
+  const f = [];
+  for (let i = 0; i < xs.length; i++) if (isFinite(xs[i])) f.push(xs[i]);
+  if (!f.length) return null;
+  const s = f.slice().sort((a, b) => a - b);
+  let lo = s[0], hi = s[s.length - 1], clipped = false;
+  const plo = s[Math.floor(s.length * 0.02)], phi = s[Math.min(s.length - 1, Math.ceil(s.length * 0.98))];
+  if ((hi - lo) > 20 * (phi - plo) && phi > plo) { lo = plo; hi = phi; clipped = true; }
+  if (includeZero) { lo = Math.min(lo, 0); hi = Math.max(hi, 0); }   // stems start at the zero line
+  if (hi === lo) { lo -= 1; hi += 1; }
+  const pad = (hi - lo) * 0.06;
+  return { lo: lo - pad, hi: hi + pad, clipped: clipped };
+}
+
+function drawPlot() {
+  const cv = $("cv");
+  const dpr = window.devicePixelRatio || 1;
+  const rect = cv.getBoundingClientRect();
+  cv.width = Math.max(10, Math.round(rect.width * dpr));
+  cv.height = Math.max(10, Math.round(rect.height * dpr));
+  const g = cv.getContext("2d");
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = rect.width, H = rect.height;
+  g.clearRect(0, 0, W, H);
+  g.font = "12px system-ui, sans-serif";
+  const m = { l: 64, r: 16, t: 14, b: 46 };
+  const pw = W - m.l - m.r, ph = H - m.t - m.b;
+
+  if (!lastData) {
+    g.fillStyle = "#5d6b7c"; g.textAlign = "center"; g.textBaseline = "middle"; g.font = "14px system-ui, sans-serif";
+    g.strokeStyle = "#e6ebf1"; g.strokeRect(m.l + 0.5, m.t + 0.5, pw, ph);
+    g.fillText(tr("emptyPlot"), W / 2, H / 2);
+    return;
+  }
+  const { ts, xs, yr, disc } = lastData;
+  if (!yr) {
+    g.fillStyle = "#5d6b7c"; g.textAlign = "center";
+    g.fillText(tr("noFinite"), W / 2, H / 2);
+    return;
+  }
+  /* discrete: leave half a sample of space on both sides so the end stems are not cut */
+  const t0 = disc ? lastData.t0 - 0.5 : lastData.t0, t1 = disc ? lastData.t1 + 0.5 : lastData.t1;
+  const X = (t) => m.l + (t - t0) / (t1 - t0) * pw;
+  const Y = (y) => m.t + (yr.hi - y) / (yr.hi - yr.lo) * ph;
+
+  const tx = ticks(t0, t1, Math.max(3, Math.floor(pw / 90)));
+  if (disc && tx.step < 1) {                       // only integers make sense on the n axis
+    tx.step = 1;
+    tx.list = [];
+    for (let v = Math.ceil(t0); v <= t1; v++) tx.list.push(v);
+  }
+  const ty = ticks(yr.lo, yr.hi, Math.max(3, Math.floor(ph / 50)));
+
+  g.lineWidth = 1; g.strokeStyle = "#e6ebf1"; g.fillStyle = "#5d6b7c";
+  g.textAlign = "center"; g.textBaseline = "top";
+  tx.list.forEach((v) => {
+    const x = Math.round(X(v)) + 0.5;
+    g.beginPath(); g.moveTo(x, m.t); g.lineTo(x, m.t + ph); g.stroke();
+    g.fillText(tickLabel(v, tx.step), x, m.t + ph + 6);
+  });
+  g.textAlign = "right"; g.textBaseline = "middle";
+  ty.list.forEach((v) => {
+    const y = Math.round(Y(v)) + 0.5;
+    g.beginPath(); g.moveTo(m.l, y); g.lineTo(m.l + pw, y); g.stroke();
+    g.fillText(tickLabel(v, ty.step), m.l - 6, y);
+  });
+
+  /* axes through zero (if visible) */
+  g.strokeStyle = "#7d8998"; g.lineWidth = 1.3;
+  if (yr.lo < 0 && yr.hi > 0) { const y = Math.round(Y(0)) + 0.5; g.beginPath(); g.moveTo(m.l, y); g.lineTo(m.l + pw, y); g.stroke(); }
+  if (t0 < 0 && t1 > 0) { const x = Math.round(X(0)) + 0.5; g.beginPath(); g.moveTo(x, m.t); g.lineTo(x, m.t + ph); g.stroke(); }
+  g.strokeStyle = "#1b2430"; g.lineWidth = 1.5;
+  g.strokeRect(m.l + 0.5, m.t + 0.5, pw, ph);
+
+  /* labels */
+  g.fillStyle = "#1b2430"; g.textAlign = "center"; g.textBaseline = "alphabetic";
+  g.font = "13px system-ui, sans-serif";
+  g.fillText(tr(disc ? "xlabelD" : "xlabel"), m.l + pw / 2, H - 8);
+  g.save(); g.translate(14, m.t + ph / 2); g.rotate(-Math.PI / 2); g.fillText(tr(disc ? "ylabelD" : "ylabel"), 0, 0); g.restore();
+
+  g.save();
+  g.beginPath(); g.rect(m.l, m.t, pw, ph); g.clip();
+  const span = yr.hi - yr.lo;
+  if (disc) {
+    /* stem plot: a vertical line from the zero line to each sample, with a dot on top */
+    const base = Y(Math.max(yr.lo, Math.min(yr.hi, 0)));
+    const dense = xs.length > 150;
+    g.strokeStyle = "#1f6feb"; g.fillStyle = "#1f6feb"; g.lineWidth = dense ? 1 : 1.8;
+    const r = xs.length > 400 ? 1.3 : dense ? 2 : 3.5;
+    for (let i = 0; i < xs.length; i++) {
+      const y = xs[i];
+      if (!isFinite(y) || y > yr.hi + 3 * span || y < yr.lo - 3 * span) continue;
+      const px = X(ts[i]), py = Y(y);
+      g.beginPath(); g.moveTo(px, base); g.lineTo(px, py); g.stroke();
+      g.beginPath(); g.arc(px, py, r, 0, 2 * Math.PI); g.fill();
+    }
+  } else {
+    /* continuous: samples joined by line segments, broken at undefined/huge values */
+    g.strokeStyle = "#1f6feb"; g.lineWidth = 2; g.lineJoin = "round";
+    let pen = false;
+    g.beginPath();
+    for (let i = 0; i < xs.length; i++) {
+      const y = xs[i];
+      const bad = !isFinite(y) || y > yr.hi + 3 * span || y < yr.lo - 3 * span;
+      if (bad) { pen = false; continue; }
+      const px = X(ts[i]), py = Y(y);
+      if (!pen) { g.moveTo(px, py); pen = true; } else g.lineTo(px, py);
+    }
+    g.stroke();
+  }
+  g.restore();
+}
+
+function onHover(ev) {
+  if (!lastData || !lastData.yr) return;
+  const cv = $("cv"), rect = cv.getBoundingClientRect();
+  const m = { l: 64, r: 16 };
+  const pw = rect.width - m.l - m.r;
+  const frac = (ev.clientX - rect.left - m.l) / pw;
+  if (frac < 0 || frac > 1) return;
+  const n = lastData.xs.length;
+  let i;
+  if (lastData.disc) {                              // x axis spans [n0-0.5, n1+0.5]
+    const nv = lastData.t0 - 0.5 + frac * (lastData.t1 - lastData.t0 + 1);
+    i = Math.max(0, Math.min(n - 1, Math.round(nv - lastData.t0)));
+    $("hover").textContent = "n = " + fmt(lastData.ts[i]) + "    x[n] = " + fmt(lastData.xs[i]);
+    return;
+  }
+  i = Math.max(0, Math.min(n - 1, Math.round(frac * (n - 1))));
+  $("hover").textContent = "t = " + fmt(lastData.ts[i]) + "    x(t) = " + fmt(lastData.xs[i]);
+}
+
+/* ------------------------------- results ------------------------------- */
+function addRow(body, label, valueNode) {
+  const tr_ = document.createElement("tr");
+  const a = document.createElement("td"); a.textContent = label;
+  const b = document.createElement("td"); b.className = "val";
+  if (typeof valueNode === "string") b.textContent = valueNode; else b.appendChild(valueNode);
+  tr_.appendChild(a); tr_.appendChild(b); body.appendChild(tr_);
+}
+
+function renderResults(r) {
+  const body = $("resBody");
+  body.textContent = "";
+  const a = r.analysis;
+  const d = !!r.disc;                                  // discrete-time result?
+
+  addRow(body, tr("rEquation"), (d ? "x[n] = " : "x(t) = ") + r.src);
+
+  const badge = document.createElement("span");
+  badge.className = "badge " + a.status;
+  badge.textContent = tr("status_" + a.status);
+  addRow(body, tr("rStatus"), badge);
+
+  const notes = [];
+  if (a.status === "periodic") {
+    const pf = piForm(a.T), pf2 = piForm(a.omega);
+    const pf0 = d ? "" : pf;                               // "= 2π" style hint only for seconds
+    addRow(body, tr(d ? "rPeriodD" : "rPeriod"), fmt(a.T) + " " + tr(d ? "unitSamples" : "sec") + (pf0 ? "   (= " + pf0 + ")" : ""));
+    addRow(body, tr(d ? "rFreqD" : "rFreq"), fmt(a.f) + " " + tr(d ? "unitCps" : "hz"));
+    addRow(body, tr(d ? "rOmegaD" : "rOmega"), fmt(a.omega) + " " + tr(d ? "unitRps" : "rad") + (pf2 ? "   (= " + pf2 + ")" : ""));
+    addRow(body, tr("rMethod"), tr("method_" + a.method));
+    const span = d ? r.t1 - r.t0 + 1 : r.t1 - r.t0;
+    if (span < a.T * 0.999) notes.push(tr(d ? "note_windowShortD" : "note_windowShort"));
+    else notes.push(tr("note_windowPeriods", { n: fmt(span / a.T) }));
+  } else {
+    addRow(body, tr(d ? "rPeriodD" : "rPeriod"), tr("na"));
+    addRow(body, tr(d ? "rFreqD" : "rFreq"), tr("na"));
+    addRow(body, tr(d ? "rOmegaD" : "rOmega"), tr("na"));
+    if (a.status === "constant") addRow(body, tr("rMethod"), tr(d ? "constNoteD" : "constNote"));
+    else if (a.status === "aperiodic") {
+      addRow(body, tr("rMethod"), a.method === "ratioTest" ? tr("method_ratioTest")
+        : a.method === "ratioTestD" ? tr("method_ratioTestD")
+        : tr("method_rule") + tr("reason_" + a.reason));
+    } else {
+      addRow(body, tr("rMethod"), tr("method_none") + tr("why_" + a.reason));
+    }
+  }
+  addRow(body, tr("rInterval"), d
+    ? "n = [" + fmt(r.t0) + ", " + fmt(r.t1) + "] , " + (r.t1 - r.t0 + 1) + " " + tr("unitSamples")
+    : "[" + fmt(r.t0) + ", " + fmt(r.t1) + "] , N = " + r.N);
+
+  (a.notes || []).forEach((k) => notes.push(tr("note_" + k)));
+  if (r.gaps > 0) notes.push(tr("note_gaps", { n: r.gaps }));
+  if (r.clipped) notes.push(tr("note_clipped"));
+  if (a.status === "inconclusive" || (a.status === "aperiodic" && (a.method === "ratioTest" || a.method === "ratioTestD"))) {
+    if (r.numEstimate) notes.push(tr(d ? "note_numEstD" : "note_numEst", { T: fmt(r.numEstimate) }));
+    else notes.push(tr("note_numNone", { a: fmt(r.t0), b: fmt(r.t1) }));
+  }
+  if (notes.length) {
+    const ul = document.createElement("ul"); ul.className = "notes";
+    notes.forEach((t) => { const li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
+    addRow(body, tr("rNotes"), ul);
+  }
+  $("resCard").hidden = false;
+}
+
+function showMessage(kind, text) {
+  const d = document.createElement("div");
+  d.className = "alert " + kind;
+  d.textContent = text;
+  $("msg").appendChild(d);
+}
+
+/* ------------------------------- main action ------------------------------- */
+function plotSignal() {
+  lastError = null;
+  $("msg").textContent = "";
+  const disc = mode === "disc";
+  try {
+    let src = normalizeDigits($("expr").value).trim();
+    /* accept a pasted "x(t) = ..." or "x[n] = ..." prefix */
+    const stripped = src.replace(/^x\s*[\(\[]\s*[tn]\s*[\)\]]\s*=\s*/i, "");
+    if (stripped !== src) { src = stripped; $("expr").value = src; }
+    const t0 = readNumber("t0", disc ? "lblN0" : "lblT0");
+    const t1 = readNumber("t1", disc ? "lblN1" : "lblT1");
+    if (!(t1 > t0)) throw new SignalError("interval");
+
+    let N;
+    if (disc) {
+      if (!Number.isInteger(t0) || !Number.isInteger(t1)) throw new SignalError("intN");
+      N = t1 - t0 + 1;                           // every integer n from n0 to n1
+      if (N > 5000) throw new SignalError("rangeD");
+    } else {
+      const nRaw = readNumber("ns", "lblN");
+      if (!Number.isInteger(nRaw) || nRaw < 10 || nRaw > 20000) throw new SignalError("samples");
+      N = nRaw;
+    }
+
+    const ast = parseExpression(src, disc ? "n" : "t");   // throws SignalError on invalid input
+
+    const ts = new Float64Array(N), xs = new Float64Array(N);
+    let gaps = 0;
+    for (let i = 0; i < N; i++) {
+      const t = disc ? t0 + i : t0 + (t1 - t0) * i / (N - 1);
+      const v = evalNode(ast, t);
+      ts[i] = t; xs[i] = isFinite(v) ? v : NaN;
+      if (!isFinite(v)) gaps++;
+    }
+    const yr = chooseRange(xs, disc);
+    const analysis = analyze(ast, disc);
+    let numEstimate = null;
+    if (analysis.status === "inconclusive" || (analysis.status === "aperiodic" && (analysis.method === "ratioTest" || analysis.method === "ratioTestD"))) {
+      numEstimate = estimatePeriodNumeric(xs, disc ? 1 : (t1 - t0) / (N - 1));
+    }
+    lastData = { ts: ts, xs: xs, t0: t0, t1: t1, yr: yr, disc: disc };
+    lastResult = { src: src, t0: t0, t1: t1, N: N, gaps: gaps, clipped: !!(yr && yr.clipped), analysis: analysis, numEstimate: numEstimate, disc: disc };
+    drawPlot();
+    renderResults(lastResult);
+    $("hover").textContent = tr("hover");
+  } catch (e) {
+    /* store the error (not the translated text) so a language switch can re-translate it */
+    lastError = e instanceof SignalError ? { code: e.code, params: e.params } : { raw: String(e && e.message ? e.message : e) };
+    renderMessage();
+  }
+}
+
+/* ------------------------------- wiring ------------------------------- */
+function init() {
+  buildExamples();
+  $("modeCont").addEventListener("click", () => setMode("cont"));
+  $("modeDisc").addEventListener("click", () => setMode("disc"));
+  $("plotBtn").addEventListener("click", plotSignal);
+  ["expr", "t0", "t1", "ns"].forEach((id) => $(id).addEventListener("keydown", (e) => { if (e.key === "Enter") plotSignal(); }));
+  $("langBtn").addEventListener("click", () => { lang = lang === "ar" ? "en" : "ar"; applyLang(); });
+  $("cv").addEventListener("mousemove", onHover);
+  window.addEventListener("resize", drawPlot);
+  applyLang();                                           // nothing is plotted until the user asks
+}
+init();
+</script>
+</body>
+</html>
