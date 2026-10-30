@@ -1,5 +1,4 @@
-<!-- Islamic University of Diwaniyah, Group A. -->
-
+<!-- Islamic University of Diwaniyah, Satge2, Group A. -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -34,10 +33,13 @@ button.primary{background:var(--accent);color:var(--accent-ink);border-color:var
 .actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
 .examples{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
 .examples button{direction:ltr;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88rem}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:12px}
-.seg button{border:0;border-radius:0;padding:8px 16px;background:#fff}
-.seg button+button{border-inline-start:1px solid var(--line)}
-.seg button.on{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.seg{display:inline-flex;margin-bottom:12px}
+.seg button{position:relative;padding:8px 16px;border-radius:0}
+.seg button+button{margin-inline-start:-1px}
+.seg button:first-child{border-start-start-radius:7px;border-end-start-radius:7px}
+.seg button:last-child{border-start-end-radius:7px;border-end-end-radius:7px}
+.seg button:hover{border-color:var(--accent);z-index:1}
+.seg button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
 .sub{font-size:.85rem;color:var(--muted);margin:14px 0 0}
 #msg{margin-top:12px}
 .alert{padding:10px 12px;border-radius:7px;font-size:.92rem;margin-top:8px;border:1px solid}
@@ -61,7 +63,9 @@ details{margin-top:4px}
 details summary{cursor:pointer;font-weight:600}
 details p,details li{font-size:.92rem}
 code{background:#eef2f7;padding:1px 5px;border-radius:4px;direction:ltr;unicode-bidi:isolate;font-size:.9em}
-footer{text-align:center;color:var(--muted);font-size:.8rem;padding:6px 0 24px}
+footer{text-align:center;color:var(--muted);font-size:.9rem;line-height:1.8;padding:8px 0 24px}
+footer div{color:var(--ink)}
+footer div:first-child{font-weight:600}
 </style>
 </head>
 <body>
@@ -83,11 +87,11 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:6px 0 24px}
     <label for="expr" id="lblExprEl"></label>
     <input id="expr" class="expr" type="text" value="" placeholder="sin(2*pi*t)" autocomplete="off" spellcheck="false" maxlength="200">
     <div class="row">
-      <div><label for="t0" id="lblT0El"></label><input id="t0" type="text" inputmode="decimal" value="0"></div>
-      <div><label for="t1" id="lblT1El"></label><input id="t1" type="text" inputmode="decimal" value="3"></div>
-      <div id="nsBox"><label for="ns" data-i18n="lblN"></label><input id="ns" type="text" inputmode="numeric" value="1000"></div>
+      <div><label for="t0" id="lblT0El"></label><input id="t0" type="text" inputmode="decimal" value="" placeholder="0"></div>
+      <div><label for="t1" id="lblT1El"></label><input id="t1" type="text" inputmode="decimal" value="" placeholder="3"></div>
+      <div id="nsBox"><label for="ns" data-i18n="lblN"></label><input id="ns" type="text" inputmode="numeric" value="" placeholder="1000"></div>
     </div>
-    <div class="actions"><button id="plotBtn" class="primary" type="button" data-i18n="btnPlot"></button></div>
+    <div class="actions"><button id="plotBtn" class="primary" type="button" data-i18n="btnPlot"></button><button id="resetBtn" type="button" data-i18n="btnReset"></button></div>
     <p class="sub" id="lblExamplesEl"></p>
     <div class="examples" id="examples"></div>
     <div id="msg" aria-live="polite"></div>
@@ -108,6 +112,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:6px 0 24px}
     <h2 data-i18n="secAbout"></h2>
     <div id="about"></div>
   </section>
+  <footer><div data-i18n="footer1"></div><div data-i18n="footer2"></div></footer>
 </main>
 
 <script>
@@ -623,6 +628,9 @@ const I18N = {
     lblT1: "زمن النهاية (ثانية)",
     lblN: "عدد العينات",
     btnPlot: "ارسم الإشارة",
+    btnReset: "إعادة ضبط",
+    footer1: "الجامعة الإسلامية",
+    footer2: "قسم هندسة تقنيات الحاسوب",
     lblExamples: "أمثلة جاهزة:",
     secPlot: "الرسم البياني",
     secResults: "النتائج",
@@ -712,12 +720,17 @@ const I18N = {
       "<li>إذا كان <code>ω₀/2π</code> عدداً صحيحاً (مثل <code>cos(2*pi*n)</code>) فالإشارة ثابتة.</li>" +
       "<li>جمع إشارات متقطعة دورية يعطي دائماً إشارة دورية دورتها المضاعف المشترك الأصغر لدوراتها (ثم يُتحقق عددياً من عدم وجود دورة أصغر).</li>" +
       "<li>الحكم «غير دورية» لجيب نسبته غير نسبية اختبار عددي بدقة محدودة، لا برهان صارم.</li></ul>",
+    aboutRefHtml:
+      "<p><b>المرجع العلمي:</b> A. V. Oppenheim, A. S. Willsky, with S. H. Nawab, <i>Signals and Systems</i>, 2nd ed., Prentice Hall, 1997, Chapter 1. ومحاضرات الأستاذ Oppenheim في MIT OpenCourseWare (<a href=\"https://ocw.mit.edu/courses/res-6-007-signals-and-systems-spring-2011/\" target=\"_blank\" rel=\"noopener\">RES.6-007، المحاضرة 2</a>).</p>",
     err_interval: "يجب أن يكون زمن النهاية أكبر من زمن البداية.",
     err_samples: "عدد العينات يجب أن يكون عدداً صحيحاً بين 10 و 20000.",
     hover: "مرّر المؤشر فوق الرسم لقراءة القيم.",
     aboutHtml:
-      "<p><b>التعريف:</b> الإشارة <code>x(t)</code> دورية إذا وُجد <code>T &gt; 0</code> يحقق <code>x(t) = x(t+T)</code> لكل t. أصغر T كهذا يسمى الدورة الأساسية، ومنه <code>f = 1/T</code> و <code>ω = 2π/T</code>.</p>" +
-      "<p>للجيب <code>sin(ω·t)</code> مع ω ≠ 0: <code>T = 2π/|ω|</code>. مثال: <code>sin(2*pi*t)</code> دورتها 1 ثانية، و<code>cos(4*pi*t)</code> دورتها 0.5 ثانية. أما <code>exp(t)</code> فرتيبة تماماً فلا تتكرر أبداً.</p>" +
+      "<p><b>الإشارات المستمرة x(t):</b> الإشارة <code>x(t)</code> دورية إذا وُجد <code>T &gt; 0</code> يحقق <code>x(t) = x(t+T)</code> لكل t. أصغر T كهذا يسمى الدورة الأساسية، ومنه <code>f = 1/T</code> و <code>ω = 2π/T</code>.</p>" +
+      "<ul><li>للجيب <code>sin(ω·t)</code> مع ω ≠ 0: <code>T = 2π/|ω|</code>. مثال: <code>sin(2*pi*t)</code> دورتها 1 ثانية، و<code>cos(4*pi*t)</code> دورتها 0.5 ثانية.</li>" +
+      "<li>مجموع أو جداء إشارتين دوريتين دورتاهما <code>T₁</code> و<code>T₂</code> يكون دورياً إذا كانت <code>T₁/T₂ = p/q</code> نسبية، ودورته المشتركة <code>q·T₁ = p·T₂</code> (وقد تكون الدورة الأساسية أصغر منها).</li>" +
+      "<li>الإشارة الثابتة تحقق <code>x(t)=x(t+T)</code> لكل T، فلا توجد لها دورة أساسية موجبة صغرى.</li>" +
+      "<li><code>exp(t)</code> رتيبة تماماً فلا تتكرر أبداً.</li></ul>" +
       "<p><b>كيف تحكم الأداة؟</b> تحلل شجرة المعادلة بقواعد رياضية (وليس بالنظر إلى الرسم): جيب/جيب تمام/ظل لوسيط خطي، ومجموع أو جداء مركّبات دورية، ثم تتحقق عددياً من أن الدورة الناتجة هي الأصغر.</p>" +
       "<p><b>الحدود:</b></p><ul>" +
       "<li>غياب التكرار داخل نافذة الرسم لا يعني أن الإشارة غير دورية؛ لذلك تُعرض أي نتيجة عددية بوصفها تقديراً فقط.</li>" +
@@ -735,6 +748,9 @@ const I18N = {
     lblT1: "End time (s)",
     lblN: "Number of samples",
     btnPlot: "Plot Signal",
+    btnReset: "Reset",
+    footer1: "The Islamic University",
+    footer2: "Department of Computer Techniques Engineering",
     lblExamples: "Examples:",
     secPlot: "Graph",
     secResults: "Results",
@@ -824,12 +840,17 @@ const I18N = {
       "<li>If <code>ω₀/2π</code> is an integer (e.g. <code>cos(2*pi*n)</code>) the signal is constant.</li>" +
       "<li>A sum of periodic discrete signals is always periodic, with period equal to the least common multiple of their periods (then checked numerically for a smaller one).</li>" +
       "<li>An “aperiodic” verdict for a sinusoid with an irrational ratio is a numerical test with finite precision, not a strict proof.</li></ul>",
+    aboutRefHtml:
+      "<p><b>Reference:</b> A. V. Oppenheim, A. S. Willsky, with S. H. Nawab, <i>Signals and Systems</i>, 2nd ed., Prentice Hall, 1997, Chapter 1. Also Prof. Oppenheim's lectures on MIT OpenCourseWare (<a href=\"https://ocw.mit.edu/courses/res-6-007-signals-and-systems-spring-2011/\" target=\"_blank\" rel=\"noopener\">RES.6-007, Lecture 2</a>).</p>",
     err_interval: "End time must be greater than start time.",
     err_samples: "Number of samples must be an integer between 10 and 20000.",
     hover: "Move the pointer over the plot to read values.",
     aboutHtml:
-      "<p><b>Definition:</b> a signal <code>x(t)</code> is periodic if some <code>T &gt; 0</code> satisfies <code>x(t) = x(t+T)</code> for all t. The smallest such T is the fundamental period; then <code>f = 1/T</code> and <code>ω = 2π/T</code>.</p>" +
-      "<p>For <code>sin(ω·t)</code> with ω ≠ 0: <code>T = 2π/|ω|</code>. Example: <code>sin(2*pi*t)</code> has T = 1 s and <code>cos(4*pi*t)</code> has T = 0.5 s. <code>exp(t)</code> is strictly monotonic, so it never repeats.</p>" +
+      "<p><b>Continuous-time signals x(t):</b> a signal <code>x(t)</code> is periodic if some <code>T &gt; 0</code> satisfies <code>x(t) = x(t+T)</code> for all t. The smallest such T is the fundamental period; then <code>f = 1/T</code> and <code>ω = 2π/T</code>.</p>" +
+      "<ul><li>For <code>sin(ω·t)</code> with ω ≠ 0: <code>T = 2π/|ω|</code>. Example: <code>sin(2*pi*t)</code> has T = 1 s and <code>cos(4*pi*t)</code> has T = 0.5 s.</li>" +
+      "<li>A sum or product of two periodic signals with periods <code>T₁</code> and <code>T₂</code> is periodic if <code>T₁/T₂ = p/q</code> is rational; the common period is <code>q·T₁ = p·T₂</code> (the fundamental period may be smaller).</li>" +
+      "<li>A constant satisfies <code>x(t)=x(t+T)</code> for every T, so it has no smallest positive period.</li>" +
+      "<li><code>exp(t)</code> is strictly monotonic, so it never repeats.</li></ul>" +
       "<p><b>How the tool decides:</b> it analyses the expression tree with mathematical rules (not by looking at the plot): sin/cos/tan of a linear argument, sums or products of periodic parts, followed by a numerical check that the resulting period is the smallest one.</p>" +
       "<p><b>Limitations:</b></p><ul>" +
       "<li>Not seeing a repetition inside the plot window does not mean a signal is aperiodic; numerical results are therefore shown only as estimates.</li>" +
@@ -909,7 +930,7 @@ function applyLang() {
   $("lblT1El").textContent = tr(d ? "lblN1" : "lblT1");
   $("lblExamplesEl").textContent = tr(d ? "lblExamplesD" : "lblExamples");
   $("nsBox").hidden = d;                         // in discrete mode every integer n is shown
-  $("about").innerHTML = tr("aboutHtml") + tr("aboutDiscHtml");
+  $("about").innerHTML = tr("aboutHtml") + tr("aboutDiscHtml") + tr("aboutRefHtml");
   $("hover").textContent = lastData ? tr("hover") : "";
   document.title = tr("title");
   renderMessage();
@@ -917,17 +938,24 @@ function applyLang() {
   drawPlot();
 }
 /* Switch between continuous x(t) and discrete x[n]: load that mode's first example. */
-function setMode(newMode) {
-  if (newMode === mode) return;
-  mode = newMode;
+/* Empty every input (only grey placeholders remain), clear results/plot/errors. Language and mode are kept. */
+function clearLab() {
   const first = mode === "disc" ? EXAMPLES_DISC[0] : EXAMPLES[1];
-  $("expr").value = "";                                  // start empty; the example is only a placeholder
-  $("expr").placeholder = first.expr;
-  $("t0").value = 0; $("t1").value = mode === "disc" ? 24 : 3; $("ns").value = 1000;
+  $("expr").value = ""; $("expr").placeholder = first.expr;
+  $("t0").value = ""; $("t0").placeholder = "0";
+  $("t1").value = ""; $("t1").placeholder = mode === "disc" ? "24" : "3";
+  $("ns").value = ""; $("ns").placeholder = "1000";
   lastError = null; lastData = null; lastResult = null;
   $("resCard").hidden = true;
   $("resBody").textContent = "";
   $("hover").textContent = "";
+  $("msg").textContent = "";
+  drawPlot();
+}
+function setMode(newMode) {
+  if (newMode === mode) return;
+  mode = newMode;
+  clearLab();
   buildExamples();
   applyLang();
 }
@@ -1246,6 +1274,7 @@ function init() {
   $("modeCont").addEventListener("click", () => setMode("cont"));
   $("modeDisc").addEventListener("click", () => setMode("disc"));
   $("plotBtn").addEventListener("click", plotSignal);
+  $("resetBtn").addEventListener("click", clearLab);
   ["expr", "t0", "t1", "ns"].forEach((id) => $(id).addEventListener("keydown", (e) => { if (e.key === "Enter") plotSignal(); }));
   $("langBtn").addEventListener("click", () => { lang = lang === "ar" ? "en" : "ar"; applyLang(); });
   $("cv").addEventListener("mousemove", onHover);
