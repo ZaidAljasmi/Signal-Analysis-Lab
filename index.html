@@ -1,4 +1,5 @@
 <!-- Islamic University of Diwaniyah, Satge2, Group A. -->
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -87,9 +88,9 @@ footer div:first-child{font-weight:600}
     <label for="expr" id="lblExprEl"></label>
     <input id="expr" class="expr" type="text" value="" placeholder="sin(2*pi*t)" autocomplete="off" spellcheck="false" maxlength="200">
     <div class="row">
-      <div><label for="t0" id="lblT0El"></label><input id="t0" type="text" inputmode="decimal" value="" placeholder="0"></div>
-      <div><label for="t1" id="lblT1El"></label><input id="t1" type="text" inputmode="decimal" value="" placeholder="3"></div>
-      <div id="nsBox"><label for="ns" data-i18n="lblN"></label><input id="ns" type="text" inputmode="numeric" value="" placeholder="1000"></div>
+      <div><label for="t0" id="lblT0El"></label><input id="t0" type="text" inputmode="decimal" value="" placeholder="0" autocomplete="off"></div>
+      <div><label for="t1" id="lblT1El"></label><input id="t1" type="text" inputmode="decimal" value="" placeholder="3" autocomplete="off"></div>
+      <div id="nsBox"><label for="ns" data-i18n="lblN"></label><input id="ns" type="text" inputmode="numeric" value="" placeholder="1000" autocomplete="off"></div>
     </div>
     <div class="actions"><button id="plotBtn" class="primary" type="button" data-i18n="btnPlot"></button><button id="resetBtn" type="button" data-i18n="btnReset"></button></div>
     <p class="sub" id="lblExamplesEl"></p>
@@ -1279,6 +1280,8 @@ function init() {
   $("langBtn").addEventListener("click", () => { lang = lang === "ar" ? "en" : "ar"; applyLang(); });
   $("cv").addEventListener("mousemove", onHover);
   window.addEventListener("resize", drawPlot);
+  /* A browser reload (F5) must give a completely clean lab: Firefox may otherwise restore old field values. */
+  window.addEventListener("pageshow", () => { clearLab(); applyLang(); });
   applyLang();                                           // nothing is plotted until the user asks
 }
 init();
