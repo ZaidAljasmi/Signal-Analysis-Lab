@@ -1,4 +1,4 @@
-<!-- Islamic University of Diwaniyah, Satge2, Group A. -->
+<!-- Islamic University of Diwaniyah, The CTE Students, Satge2, Group A. -->
 
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -15,6 +15,7 @@
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Arabic",sans-serif}
 header{background:#0f2742;color:#fff;padding:14px 16px}
 header .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.hbtns{display:flex;gap:8px}
 header h1{margin:0;font-size:1.2rem}
 header p{margin:2px 0 0;font-size:.85rem;opacity:.8}
 .wrap{max-width:1000px;margin:0 auto}
@@ -41,6 +42,20 @@ button.primary{background:var(--accent);color:var(--accent-ink);border-color:var
 .seg button:last-child{border-start-end-radius:7px;border-end-end-radius:7px}
 .seg button:hover{border-color:var(--accent);z-index:1}
 .seg button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.ctrl{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+.ctrl h3{margin:0 0 8px;font-size:.95rem}
+.sliders{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 24px}
+@media (max-width:560px){.sliders{grid-template-columns:1fr}}
+.slrow{display:flex;align-items:center;gap:10px}
+.slrow input[type=range]{flex:1;direction:ltr;min-width:0}
+.slrow output{min-width:3.4em;text-align:left;direction:ltr;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9rem}
+.scale{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-end}
+.scale .f{width:130px}
+.zg{display:flex;flex-direction:column;gap:3px;font-size:.85rem;color:var(--muted)}
+.zg div{display:flex;gap:6px}
+.zg button{min-width:42px;padding:8px 10px}
+.formula{direction:ltr;text-align:start;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem;color:var(--muted);margin:10px 0 0}
+html[dir=rtl] .formula{text-align:right}
 .sub{font-size:.85rem;color:var(--muted);margin:14px 0 0}
 #msg{margin-top:12px}
 .alert{padding:10px 12px;border-radius:7px;font-size:.92rem;margin-top:8px;border:1px solid}
@@ -75,7 +90,7 @@ footer div:first-child{font-weight:600}
     <h1 data-i18n="title"></h1>
     <p data-i18n="subtitle"></p>
   </div>
-  <button id="langBtn" type="button" aria-label="Language">English</button>
+  <div class="hbtns"><button id="fsBtn" type="button"></button><button id="langBtn" type="button" aria-label="Language">English</button></div>
 </div></header>
 
 <main class="wrap">
@@ -102,6 +117,27 @@ footer div:first-child{font-weight:600}
     <h2 data-i18n="secPlot"></h2>
     <div class="plotbox"><canvas id="cv" role="img" aria-label="signal plot"></canvas></div>
     <div id="hover"></div>
+    <div class="ctrl">
+      <h3 data-i18n="ctrlParamsTitle"></h3>
+      <div class="sliders">
+        <div><label for="pA" data-i18n="lblA"></label><div class="slrow"><input id="pA" type="range" min="-5" max="5" step="0.1" value="1" autocomplete="off"><output id="oA">1</output></div></div>
+        <div><label for="pK" data-i18n="lblK"></label><div class="slrow"><input id="pK" type="range" min="0.1" max="5" step="0.1" value="1" autocomplete="off"><output id="oK">1</output></div></div>
+        <div><label for="pTd" id="lblTd"></label><div class="slrow"><input id="pTd" type="range" min="-5" max="5" step="0.1" value="0" autocomplete="off"><output id="oTd">0</output></div></div>
+        <div><label for="pB" data-i18n="lblB"></label><div class="slrow"><input id="pB" type="range" min="-5" max="5" step="0.1" value="0" autocomplete="off"><output id="oB">0</output></div></div>
+      </div>
+      <p class="formula" id="ctrlFormula"></p>
+      <div class="actions"><button id="pReset" type="button" data-i18n="btnResetParams"></button></div>
+
+      <h3 style="margin-top:18px" data-i18n="ctrlScaleTitle"></h3>
+      <div class="scale">
+        <div class="f"><label for="ymin" data-i18n="lblYmin"></label><input id="ymin" type="text" inputmode="decimal" value="" autocomplete="off"></div>
+        <div class="f"><label for="ymax" data-i18n="lblYmax"></label><input id="ymax" type="text" inputmode="decimal" value="" autocomplete="off"></div>
+        <div class="zg"><span data-i18n="lblZoomY"></span><div><button id="zyIn" type="button">+</button><button id="zyOut" type="button">&minus;</button></div></div>
+        <div class="zg"><span data-i18n="lblZoomT"></span><div><button id="ztIn" type="button">+</button><button id="ztOut" type="button">&minus;</button></div></div>
+        <button id="yAuto" type="button" data-i18n="btnAuto"></button>
+      </div>
+      <p class="sub" data-i18n="ctrlHint"></p>
+    </div>
   </section>
 
   <section class="card" id="resCard" hidden>
@@ -253,6 +289,25 @@ function evalNode(n, t) {
       }
     }
   }
+}
+
+/* Wave-shape controls: y(t) = A * x(k*(t - td)) + B, built as a NEW tree so the period analysis
+   stays exact (e.g. k = 2 halves the period). With default values the original tree is returned. */
+function substT(n, k, td) {
+  switch (n.type) {
+    case "num": return n;
+    case "t": return { type: "bin", op: "*", a: { type: "num", v: k }, b: { type: "bin", op: "-", a: { type: "t" }, b: { type: "num", v: td } } };
+    case "neg": return { type: "neg", a: substT(n.a, k, td) };
+    case "call": return { type: "call", fn: n.fn, a: substT(n.a, k, td) };
+    default: return { type: "bin", op: n.op, a: substT(n.a, k, td), b: substT(n.b, k, td) };
+  }
+}
+function applyParams(ast, P) {
+  if (!P || (P.A === 1 && P.k === 1 && P.td === 0 && P.B === 0)) return ast;
+  let a = (P.k === 1 && P.td === 0) ? ast : substT(ast, P.k, P.td);
+  if (P.A !== 1) a = { type: "bin", op: "*", a: { type: "num", v: P.A }, b: a };
+  if (P.B !== 0) a = { type: "bin", op: "+", a: a, b: { type: "num", v: P.B } };
+  return a;
 }
 
 function hasT(n) {
@@ -630,6 +685,26 @@ const I18N = {
     lblN: "عدد العينات",
     btnPlot: "ارسم الإشارة",
     btnReset: "إعادة ضبط",
+    btnFull: "ملء الشاشة",
+    btnFullExit: "إنهاء ملء الشاشة",
+    secCtrl: "التحكم بشكل الموجة",
+    ctrlParamsTitle: "معاملات الموجة",
+    lblA: "السعة A",
+    lblK: "مقياس التردد k",
+    lblTd: "الإزاحة الزمنية t_d (ثانية)",
+    lblNd: "الإزاحة n_d (عينة)",
+    lblB: "الإزاحة الرأسية B",
+    btnResetParams: "إعادة المعاملات",
+    ctrlScaleTitle: "مقياس الرسم",
+    lblYmin: "أصغر قيمة Y",
+    lblYmax: "أكبر قيمة Y",
+    autoPh: "تلقائي",
+    lblZoomY: "تكبير رأسي",
+    lblZoomT: "تكبير أفقي (الزمن)",
+    btnAuto: "المحور الرأسي تلقائي",
+    ctrlHint: "لتشاهد تغيّر السعة على الرسم ثبّت المحور الرأسي بإدخال أصغر وأكبر قيمة أو بأزرار التكبير الرأسي. k أكبر من 1 يضغط الموجة (تردد أعلى).",
+    rParams: "المعاملات المطبقة",
+    err_yrange: "أصغر قيمة Y يجب أن تكون أقل من أكبر قيمة.",
     footer1: "الجامعة الإسلامية",
     footer2: "قسم هندسة تقنيات الحاسوب",
     lblExamples: "أمثلة جاهزة:",
@@ -750,6 +825,26 @@ const I18N = {
     lblN: "Number of samples",
     btnPlot: "Plot Signal",
     btnReset: "Reset",
+    btnFull: "Fullscreen",
+    btnFullExit: "Exit fullscreen",
+    secCtrl: "Wave shape controls",
+    ctrlParamsTitle: "Wave parameters",
+    lblA: "Amplitude A",
+    lblK: "Frequency scale k",
+    lblTd: "Time shift t_d (s)",
+    lblNd: "Shift n_d (samples)",
+    lblB: "Vertical offset B",
+    btnResetParams: "Reset parameters",
+    ctrlScaleTitle: "Plot scale",
+    lblYmin: "Y minimum",
+    lblYmax: "Y maximum",
+    autoPh: "auto",
+    lblZoomY: "Vertical zoom",
+    lblZoomT: "Horizontal zoom (time)",
+    btnAuto: "Vertical axis: auto",
+    ctrlHint: "To see amplitude changes on the plot, fix the vertical axis by entering a minimum and maximum or by using the vertical zoom buttons. k greater than 1 compresses the wave (higher frequency).",
+    rParams: "Applied parameters",
+    err_yrange: "Y minimum must be less than Y maximum.",
     footer1: "The Islamic University",
     footer2: "Department of Computer Techniques Engineering",
     lblExamples: "Examples:",
@@ -916,12 +1011,94 @@ function buildExamples() {
     box.appendChild(b);
   });
 }
+/* ---------- wave-shape controls ---------- */
+const view = { ymin: null, ymax: null };           // manual vertical range (null = automatic)
+function readParams() {
+  const v = (id, def) => { const x = parseFloat($(id).value); return isFinite(x) ? x : def; };
+  return { A: v("pA", 1), k: v("pK", 1), td: v("pTd", 0), B: v("pB", 0) };
+}
+function isDefaultParams(P) { return P.A === 1 && P.k === 1 && P.td === 0 && P.B === 0; }
+function updateReadouts() {
+  const P = readParams();
+  $("oA").textContent = fmt(P.A); $("oK").textContent = fmt(P.k); $("oTd").textContent = fmt(P.td); $("oB").textContent = fmt(P.B);
+}
+function resetParams() {
+  $("pA").value = 1; $("pK").value = 1; $("pTd").value = 0; $("pB").value = 0;
+  updateReadouts();
+}
+function effectiveRange() {
+  const base = lastData && lastData.yr;
+  if (!base) return null;
+  if (view.ymin === null && view.ymax === null) return base;
+  const lo = view.ymin !== null ? view.ymin : base.lo, hi = view.ymax !== null ? view.ymax : base.hi;
+  return hi > lo ? { lo: lo, hi: hi, clipped: false, manual: true } : base;
+}
+function applyYFields() {
+  try {
+    const rd = (id, key) => {
+      const raw = normalizeDigits($(id).value).trim();
+      if (raw === "") return null;
+      if (!/^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(raw)) throw new SignalError("field", { fKey: key });
+      return Number(raw);
+    };
+    const lo = rd("ymin", "lblYmin"), hi = rd("ymax", "lblYmax");
+    const base = lastData && lastData.yr;
+    const eLo = lo !== null ? lo : (base ? base.lo : -Infinity), eHi = hi !== null ? hi : (base ? base.hi : Infinity);
+    if (!(eHi > eLo)) throw new SignalError("yrange");
+    view.ymin = lo; view.ymax = hi;
+    lastError = null; renderMessage(); drawPlot();
+  } catch (e) {
+    lastError = { code: e.code, params: e.params }; renderMessage();
+  }
+}
+function zoomY(f) {
+  const yr = effectiveRange();
+  if (!yr) return;
+  const c = (yr.lo + yr.hi) / 2, h = (yr.hi - yr.lo) / 2 * f;
+  $("ymin").value = fmt(c - h); $("ymax").value = fmt(c + h);
+  view.ymin = Number($("ymin").value); view.ymax = Number($("ymax").value);
+  drawPlot();
+}
+function zoomT(f) {
+  if (!lastData) return;
+  const a = lastData.t0, b = lastData.t1, c = (a + b) / 2, w = (b - a) / 2 * f;
+  let n0 = c - w, n1 = c + w;
+  if (lastData.disc) { n0 = Math.round(n0); n1 = Math.round(n1); if (n1 <= n0) n1 = n0 + 1; }
+  else { n0 = Number(n0.toPrecision(8)); n1 = Number(n1.toPrecision(8)); }
+  $("t0").value = n0; $("t1").value = n1;
+  plotSignal();
+}
+function autoY() {
+  view.ymin = null; view.ymax = null;
+  $("ymin").value = ""; $("ymax").value = "";
+  drawPlot();
+}
+
+/* Fullscreen works in every modern browser, but only from a click (browser rule). */
+function updateFsButton() {
+  const on = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  $("fsBtn").textContent = tr(on ? "btnFullExit" : "btnFull");
+}
+function toggleFullscreen() {
+  try {
+    const de = document.documentElement;
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    } else {
+      const req = de.requestFullscreen || de.webkitRequestFullscreen;
+      const r = req.call(de);
+      if (r && r.catch) r.catch(() => {});
+    }
+  } catch (e) { /* not supported: F11 still works */ }
+}
+
 function applyLang() {
   const d = mode === "disc";
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
   $("langBtn").textContent = lang === "ar" ? "English" : "العربية";
   document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = tr(el.getAttribute("data-i18n")); });
+  updateFsButton();
   $("modeCont").textContent = tr("modeCont");
   $("modeDisc").textContent = tr("modeDisc");
   $("modeCont").classList.toggle("on", !d);
@@ -930,6 +1107,10 @@ function applyLang() {
   $("lblT0El").textContent = tr(d ? "lblN0" : "lblT0");
   $("lblT1El").textContent = tr(d ? "lblN1" : "lblT1");
   $("lblExamplesEl").textContent = tr(d ? "lblExamplesD" : "lblExamples");
+  $("lblTd").textContent = tr(d ? "lblNd" : "lblTd");
+  $("ctrlFormula").textContent = d ? "y[n] = A·x[k·(n − n_d)] + B" : "y(t) = A·x(k·(t − t_d)) + B";
+  $("pTd").min = d ? -20 : -5; $("pTd").max = d ? 20 : 5; $("pTd").step = d ? 1 : 0.1;
+  $("ymin").placeholder = tr("autoPh"); $("ymax").placeholder = tr("autoPh");
   $("nsBox").hidden = d;                         // in discrete mode every integer n is shown
   $("about").innerHTML = tr("aboutHtml") + tr("aboutDiscHtml") + tr("aboutRefHtml");
   $("hover").textContent = lastData ? tr("hover") : "";
@@ -947,6 +1128,8 @@ function clearLab() {
   $("t1").value = ""; $("t1").placeholder = mode === "disc" ? "24" : "3";
   $("ns").value = ""; $("ns").placeholder = "1000";
   lastError = null; lastData = null; lastResult = null;
+  resetParams();
+  view.ymin = null; view.ymax = null; $("ymin").value = ""; $("ymax").value = "";
   $("resCard").hidden = true;
   $("resBody").textContent = "";
   $("hover").textContent = "";
@@ -1046,7 +1229,8 @@ function drawPlot() {
     g.fillText(tr("emptyPlot"), W / 2, H / 2);
     return;
   }
-  const { ts, xs, yr, disc } = lastData;
+  const { ts, xs, disc } = lastData;
+  const yr = effectiveRange();
   if (!yr) {
     g.fillStyle = "#5d6b7c"; g.textAlign = "center";
     g.fillText(tr("noFinite"), W / 2, H / 2);
@@ -1097,13 +1281,14 @@ function drawPlot() {
   const span = yr.hi - yr.lo;
   if (disc) {
     /* stem plot: a vertical line from the zero line to each sample, with a dot on top */
+    const far = yr.manual ? 1e4 : 3;
     const base = Y(Math.max(yr.lo, Math.min(yr.hi, 0)));
     const dense = xs.length > 150;
     g.strokeStyle = "#1f6feb"; g.fillStyle = "#1f6feb"; g.lineWidth = dense ? 1 : 1.8;
     const r = xs.length > 400 ? 1.3 : dense ? 2 : 3.5;
     for (let i = 0; i < xs.length; i++) {
       const y = xs[i];
-      if (!isFinite(y) || y > yr.hi + 3 * span || y < yr.lo - 3 * span) continue;
+      if (!isFinite(y) || y > yr.hi + far * span || y < yr.lo - far * span) continue;
       const px = X(ts[i]), py = Y(y);
       g.beginPath(); g.moveTo(px, base); g.lineTo(px, py); g.stroke();
       g.beginPath(); g.arc(px, py, r, 0, 2 * Math.PI); g.fill();
@@ -1111,11 +1296,12 @@ function drawPlot() {
   } else {
     /* continuous: samples joined by line segments, broken at undefined/huge values */
     g.strokeStyle = "#1f6feb"; g.lineWidth = 2; g.lineJoin = "round";
+    const far = yr.manual ? 1e4 : 3;
     let pen = false;
     g.beginPath();
     for (let i = 0; i < xs.length; i++) {
       const y = xs[i];
-      const bad = !isFinite(y) || y > yr.hi + 3 * span || y < yr.lo - 3 * span;
+      const bad = !isFinite(y) || y > yr.hi + far * span || y < yr.lo - far * span;
       if (bad) { pen = false; continue; }
       const px = X(ts[i]), py = Y(y);
       if (!pen) { g.moveTo(px, py); pen = true; } else g.lineTo(px, py);
@@ -1160,6 +1346,11 @@ function renderResults(r) {
   const d = !!r.disc;                                  // discrete-time result?
 
   addRow(body, tr("rEquation"), (d ? "x[n] = " : "x(t) = ") + r.src);
+  if (r.params) {
+    const q = r.params;
+    addRow(body, tr("rParams"), (d ? "y[n] = A·x[k·(n − n_d)] + B" : "y(t) = A·x(k·(t − t_d)) + B") +
+      "   ( A = " + fmt(q.A) + ", k = " + fmt(q.k) + ", " + (d ? "n_d" : "t_d") + " = " + fmt(q.td) + ", B = " + fmt(q.B) + " )");
+  }
 
   const badge = document.createElement("span");
   badge.className = "badge " + a.status;
@@ -1241,7 +1432,8 @@ function plotSignal() {
       N = nRaw;
     }
 
-    const ast = parseExpression(src, disc ? "n" : "t");   // throws SignalError on invalid input
+    const P = readParams();
+    const ast = applyParams(parseExpression(src, disc ? "n" : "t"), P);   // throws SignalError on invalid input
 
     const ts = new Float64Array(N), xs = new Float64Array(N);
     let gaps = 0;
@@ -1258,7 +1450,7 @@ function plotSignal() {
       numEstimate = estimatePeriodNumeric(xs, disc ? 1 : (t1 - t0) / (N - 1));
     }
     lastData = { ts: ts, xs: xs, t0: t0, t1: t1, yr: yr, disc: disc };
-    lastResult = { src: src, t0: t0, t1: t1, N: N, gaps: gaps, clipped: !!(yr && yr.clipped), analysis: analysis, numEstimate: numEstimate, disc: disc };
+    lastResult = { src: src, t0: t0, t1: t1, N: N, gaps: gaps, clipped: !!(yr && yr.clipped), analysis: analysis, numEstimate: numEstimate, disc: disc, params: isDefaultParams(P) ? null : P };
     drawPlot();
     renderResults(lastResult);
     $("hover").textContent = tr("hover");
@@ -1276,6 +1468,18 @@ function init() {
   $("modeDisc").addEventListener("click", () => setMode("disc"));
   $("plotBtn").addEventListener("click", plotSignal);
   $("resetBtn").addEventListener("click", clearLab);
+  ["pA", "pK", "pTd", "pB"].forEach((id) => $(id).addEventListener("input", () => { updateReadouts(); if (lastData) plotSignal(); }));
+  $("fsBtn").hidden = !(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+  $("fsBtn").addEventListener("click", toggleFullscreen);
+  document.addEventListener("fullscreenchange", updateFsButton);
+  document.addEventListener("webkitfullscreenchange", updateFsButton);
+  $("pReset").addEventListener("click", () => { resetParams(); if (lastData) plotSignal(); });
+  ["ymin", "ymax"].forEach((id) => { $(id).addEventListener("change", applyYFields); $(id).addEventListener("keydown", (e) => { if (e.key === "Enter") applyYFields(); }); });
+  $("zyIn").addEventListener("click", () => zoomY(0.5));
+  $("zyOut").addEventListener("click", () => zoomY(2));
+  $("ztIn").addEventListener("click", () => zoomT(0.5));
+  $("ztOut").addEventListener("click", () => zoomT(2));
+  $("yAuto").addEventListener("click", autoY);
   ["expr", "t0", "t1", "ns"].forEach((id) => $(id).addEventListener("keydown", (e) => { if (e.key === "Enter") plotSignal(); }));
   $("langBtn").addEventListener("click", () => { lang = lang === "ar" ? "en" : "ar"; applyLang(); });
   $("cv").addEventListener("mousemove", onHover);
