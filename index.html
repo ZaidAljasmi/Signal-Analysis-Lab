@@ -125,7 +125,7 @@ footer div:first-child{font-weight:600}
         <div><label for="pTd" id="lblTd"></label><div class="slrow"><input id="pTd" type="range" min="-5" max="5" step="0.1" value="0" autocomplete="off"><output id="oTd">0</output></div></div>
         <div><label for="pB" data-i18n="lblB"></label><div class="slrow"><input id="pB" type="range" min="-5" max="5" step="0.1" value="0" autocomplete="off"><output id="oB">0</output></div></div>
       </div>
-      <p class="formula" id="ctrlFormula"></p>
+      <p class="sub" id="ctrlFormula"></p>
       <div class="actions"><button id="pReset" type="button" data-i18n="btnResetParams"></button></div>
 
       <h3 style="margin-top:18px" data-i18n="ctrlScaleTitle"></h3>
@@ -688,23 +688,28 @@ const I18N = {
     btnFull: "ملء الشاشة",
     btnFullExit: "إنهاء ملء الشاشة",
     secCtrl: "التحكم بشكل الموجة",
-    ctrlParamsTitle: "معاملات الموجة",
-    lblA: "السعة A",
-    lblK: "مقياس التردد k",
-    lblTd: "الإزاحة الزمنية t_d (ثانية)",
-    lblNd: "الإزاحة n_d (عينة)",
-    lblB: "الإزاحة الرأسية B",
+    ctrlParamsTitle: "تعديل الموجة",
+    lblA: "ارتفاع الموجة (السعة)",
+    lblK: "سرعة التكرار (التردد)",
+    lblTd: "تحريك لليمين واليسار (إزاحة زمنية، بالثواني)",
+    lblNd: "تحريك لليمين واليسار (بعدد العينات)",
+    lblB: "رفع الموجة وخفضها (إزاحة رأسية)",
     btnResetParams: "إعادة الموجة للوضع الطبيعي",
-    ctrlScaleTitle: "مقياس الرسم",
-    lblYmin: "أصغر قيمة Y",
-    lblYmax: "أكبر قيمة Y",
+    ctrlScaleTitle: "عرض الرسم",
+    lblYmin: "أدنى قيمة تظهر على المحور الرأسي",
+    lblYmax: "أعلى قيمة تظهر على المحور الرأسي",
     autoPh: "تلقائي",
-    lblZoomY: "تكبير رأسي",
-    lblZoomT: "تكبير أفقي (الزمن)",
-    btnAuto: "المحور الرأسي تلقائي",
-    ctrlHint: "لتشاهد تغيّر السعة على الرسم ثبّت المحور الرأسي بإدخال أصغر وأكبر قيمة أو بأزرار التكبير الرأسي. k أكبر من 1 يضغط الموجة (تردد أعلى).",
-    rParams: "المعاملات المطبقة",
-    err_yrange: "أصغر قيمة Y يجب أن تكون أقل من أكبر قيمة.",
+    lblZoomY: "تكبير الارتفاع",
+    lblZoomT: "تكبير الزمن",
+    btnAuto: "ضبط الارتفاع تلقائياً",
+    ctrlHint: "ملاحظة: الرسم يضبط ارتفاعه تلقائياً، فلن ترى تغيّر ارتفاع الموجة إلا إذا ثبّتَّ الحدّين الأدنى والأعلى (مثلاً -5 و5) في الخانتين أعلاه.",
+    ctrlNote: "هذه الأشرطة تغيّر شكل الموجة ودورتها فقط. لا تحوّل إشارة غير دورية إلى دورية ولا العكس.",
+    rParams: "التعديلات المطبقة",
+    rpHeight: "الارتفاع",
+    rpSpeed: "سرعة التكرار",
+    rpShift: "التحريك",
+    rpUp: "الرفع",
+    err_yrange: "القيمة الدنيا يجب أن تكون أقل من القيمة العليا.",
     footer1: "الجامعة الإسلامية",
     footer2: "قسم هندسة تقنيات الحاسوب",
     lblExamples: "أمثلة جاهزة:",
@@ -828,23 +833,28 @@ const I18N = {
     btnFull: "Fullscreen",
     btnFullExit: "Exit fullscreen",
     secCtrl: "Wave shape controls",
-    ctrlParamsTitle: "Wave parameters",
-    lblA: "Amplitude A",
-    lblK: "Frequency scale k",
-    lblTd: "Time shift t_d (s)",
-    lblNd: "Shift n_d (samples)",
-    lblB: "Vertical offset B",
+    ctrlParamsTitle: "Change the wave",
+    lblA: "Wave height (amplitude)",
+    lblK: "Repeat speed (frequency)",
+    lblTd: "Move left / right (time shift, seconds)",
+    lblNd: "Move left / right (in samples)",
+    lblB: "Move up / down (vertical shift)",
     btnResetParams: "Restore original wave",
-    ctrlScaleTitle: "Plot scale",
-    lblYmin: "Y minimum",
-    lblYmax: "Y maximum",
+    ctrlScaleTitle: "Graph view",
+    lblYmin: "Lowest value shown on the vertical axis",
+    lblYmax: "Highest value shown on the vertical axis",
     autoPh: "auto",
-    lblZoomY: "Vertical zoom",
-    lblZoomT: "Horizontal zoom (time)",
-    btnAuto: "Vertical axis: auto",
-    ctrlHint: "To see amplitude changes on the plot, fix the vertical axis by entering a minimum and maximum or by using the vertical zoom buttons. k greater than 1 compresses the wave (higher frequency).",
-    rParams: "Applied parameters",
-    err_yrange: "Y minimum must be less than Y maximum.",
+    lblZoomY: "Zoom height",
+    lblZoomT: "Zoom time",
+    btnAuto: "Set height automatically",
+    ctrlHint: "Note: the graph sets its own height automatically, so you will not see the wave height change unless you fix the lowest and highest values (for example -5 and 5) in the two boxes above.",
+    ctrlNote: "These sliders only change the shape and period of the wave. They never turn a non-periodic signal into a periodic one, or the other way round.",
+    rParams: "Changes applied",
+    rpHeight: "Height",
+    rpSpeed: "Repeat speed",
+    rpShift: "Shift",
+    rpUp: "Up/Down",
+    err_yrange: "The lowest value must be less than the highest value.",
     footer1: "The Islamic University",
     footer2: "Department of Computer Techniques Engineering",
     lblExamples: "Examples:",
@@ -1117,7 +1127,7 @@ function applyLang() {
   $("lblT1El").textContent = tr(d ? "lblN1" : "lblT1");
   $("lblExamplesEl").textContent = tr(d ? "lblExamplesD" : "lblExamples");
   $("lblTd").textContent = tr(d ? "lblNd" : "lblTd");
-  $("ctrlFormula").textContent = d ? "y[n] = A·x[k·(n − n_d)] + B" : "y(t) = A·x(k·(t − t_d)) + B";
+  $("ctrlFormula").textContent = tr("ctrlNote");
   $("pTd").min = d ? -20 : -5; $("pTd").max = d ? 20 : 5; $("pTd").step = d ? 1 : 0.1;
   $("ymin").placeholder = tr("autoPh"); $("ymax").placeholder = tr("autoPh");
   $("nsBox").hidden = d;                         // in discrete mode every integer n is shown
@@ -1359,8 +1369,8 @@ function renderResults(r) {
   addRow(body, tr("rEquation"), (d ? "x[n] = " : "x(t) = ") + r.src);
   if (r.params) {
     const q = r.params;
-    addRow(body, tr("rParams"), (d ? "y[n] = A·x[k·(n − n_d)] + B" : "y(t) = A·x(k·(t − t_d)) + B") +
-      "   ( A = " + fmt(q.A) + ", k = " + fmt(q.k) + ", " + (d ? "n_d" : "t_d") + " = " + fmt(q.td) + ", B = " + fmt(q.B) + " )");
+    addRow(body, tr("rParams"), tr("rpHeight") + " = " + fmt(q.A) + " ,  " + tr("rpSpeed") + " = " + fmt(q.k) + " ,  " +
+      tr("rpShift") + " = " + fmt(q.td) + " ,  " + tr("rpUp") + " = " + fmt(q.B));
   }
 
   const badge = document.createElement("span");
