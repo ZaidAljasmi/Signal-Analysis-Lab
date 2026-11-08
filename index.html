@@ -694,7 +694,7 @@ const I18N = {
     lblTd: "الإزاحة الزمنية t_d (ثانية)",
     lblNd: "الإزاحة n_d (عينة)",
     lblB: "الإزاحة الرأسية B",
-    btnResetParams: "إعادة المعاملات",
+    btnResetParams: "إعادة الموجة للوضع الطبيعي",
     ctrlScaleTitle: "مقياس الرسم",
     lblYmin: "أصغر قيمة Y",
     lblYmax: "أكبر قيمة Y",
@@ -834,7 +834,7 @@ const I18N = {
     lblTd: "Time shift t_d (s)",
     lblNd: "Shift n_d (samples)",
     lblB: "Vertical offset B",
-    btnResetParams: "Reset parameters",
+    btnResetParams: "Restore original wave",
     ctrlScaleTitle: "Plot scale",
     lblYmin: "Y minimum",
     lblYmax: "Y maximum",
@@ -1013,6 +1013,7 @@ function buildExamples() {
 }
 /* ---------- wave-shape controls ---------- */
 const view = { ymin: null, ymax: null };           // manual vertical range (null = automatic)
+let origWin = null;                                // time window of the last plot made by the user (not by zoom/sliders)
 function readParams() {
   const v = (id, def) => { const x = parseFloat($(id).value); return isFinite(x) ? x : def; };
   return { A: v("pA", 1), k: v("pK", 1), td: v("pTd", 0), B: v("pB", 0) };
@@ -1066,7 +1067,15 @@ function zoomT(f) {
   if (lastData.disc) { n0 = Math.round(n0); n1 = Math.round(n1); if (n1 <= n0) n1 = n0 + 1; }
   else { n0 = Number(n0.toPrecision(8)); n1 = Number(n1.toPrecision(8)); }
   $("t0").value = n0; $("t1").value = n1;
-  plotSignal();
+  plotSignal(true);
+}
+/* Put the wave back exactly as first plotted: sliders, vertical range, zoom and time window. */
+function restoreWave() {
+  resetParams();
+  view.ymin = null; view.ymax = null; $("ymin").value = ""; $("ymax").value = "";
+  if (!lastData) { drawPlot(); return; }               // nothing plotted yet
+  if (origWin) { $("t0").value = origWin.t0; $("t1").value = origWin.t1; }
+  plotSignal(true);
 }
 function autoY() {
   view.ymin = null; view.ymax = null;
@@ -1127,7 +1136,7 @@ function clearLab() {
   $("t0").value = ""; $("t0").placeholder = "0";
   $("t1").value = ""; $("t1").placeholder = mode === "disc" ? "24" : "3";
   $("ns").value = ""; $("ns").placeholder = "1000";
-  lastError = null; lastData = null; lastResult = null;
+  lastError = null; lastData = null; lastResult = null; origWin = null;
   resetParams();
   view.ymin = null; view.ymax = null; $("ymin").value = ""; $("ymax").value = "";
   $("resCard").hidden = true;
@@ -1249,6 +1258,7 @@ function drawPlot() {
   }
   const ty = ticks(yr.lo, yr.hi, Math.max(3, Math.floor(ph / 50)));
 
+  g.direction = "ltr";                      // numbers (and their minus sign) must read left-to-right, also on the Arabic page
   g.lineWidth = 1; g.strokeStyle = "#e6ebf1"; g.fillStyle = "#5d6b7c";
   g.textAlign = "center"; g.textBaseline = "top";
   tx.list.forEach((v) => {
@@ -1271,6 +1281,7 @@ function drawPlot() {
   g.strokeRect(m.l + 0.5, m.t + 0.5, pw, ph);
 
   /* labels */
+  g.direction = "inherit";                  // axis titles follow the page language
   g.fillStyle = "#1b2430"; g.textAlign = "center"; g.textBaseline = "alphabetic";
   g.font = "13px system-ui, sans-serif";
   g.fillText(tr(disc ? "xlabelD" : "xlabel"), m.l + pw / 2, H - 8);
@@ -1408,7 +1419,7 @@ function showMessage(kind, text) {
 }
 
 /* ------------------------------- main action ------------------------------- */
-function plotSignal() {
+function plotSignal(keepWindow) {   // keepWindow === true: replot caused by zoom/sliders, not a new plot
   lastError = null;
   $("msg").textContent = "";
   const disc = mode === "disc";
@@ -1449,6 +1460,7 @@ function plotSignal() {
     if (analysis.status === "inconclusive" || (analysis.status === "aperiodic" && (analysis.method === "ratioTest" || analysis.method === "ratioTestD"))) {
       numEstimate = estimatePeriodNumeric(xs, disc ? 1 : (t1 - t0) / (N - 1));
     }
+    if (keepWindow !== true || !origWin) origWin = { t0: t0, t1: t1 };
     lastData = { ts: ts, xs: xs, t0: t0, t1: t1, yr: yr, disc: disc };
     lastResult = { src: src, t0: t0, t1: t1, N: N, gaps: gaps, clipped: !!(yr && yr.clipped), analysis: analysis, numEstimate: numEstimate, disc: disc, params: isDefaultParams(P) ? null : P };
     drawPlot();
@@ -1468,12 +1480,12 @@ function init() {
   $("modeDisc").addEventListener("click", () => setMode("disc"));
   $("plotBtn").addEventListener("click", plotSignal);
   $("resetBtn").addEventListener("click", clearLab);
-  ["pA", "pK", "pTd", "pB"].forEach((id) => $(id).addEventListener("input", () => { updateReadouts(); if (lastData) plotSignal(); }));
+  ["pA", "pK", "pTd", "pB"].forEach((id) => $(id).addEventListener("input", () => { updateReadouts(); if (lastData) plotSignal(true); }));
   $("fsBtn").hidden = !(document.fullscreenEnabled || document.webkitFullscreenEnabled);
   $("fsBtn").addEventListener("click", toggleFullscreen);
   document.addEventListener("fullscreenchange", updateFsButton);
   document.addEventListener("webkitfullscreenchange", updateFsButton);
-  $("pReset").addEventListener("click", () => { resetParams(); if (lastData) plotSignal(); });
+  $("pReset").addEventListener("click", restoreWave);
   ["ymin", "ymax"].forEach((id) => { $(id).addEventListener("change", applyYFields); $(id).addEventListener("keydown", (e) => { if (e.key === "Enter") applyYFields(); }); });
   $("zyIn").addEventListener("click", () => zoomY(0.5));
   $("zyOut").addEventListener("click", () => zoomY(2));
