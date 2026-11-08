@@ -15,6 +15,17 @@
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Arabic",sans-serif}
 header{background:#0f2742;color:#fff;padding:14px 16px}
 header .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.cardhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.cardhead h2{margin:0}
+body.big{overflow:hidden}
+body.big header,body.big main>section:not(#plotCard),body.big footer{display:none}
+body.big #plotCard{position:fixed;inset:0;z-index:50;margin:0;padding:0;border:0;border-radius:0;background:#fff}
+body.big #plotCard .ctrl,body.big #plotCard .cardhead h2{display:none}
+body.big #plotCard .cardhead{position:absolute;top:10px;inset-inline-end:12px;z-index:3;margin:0}
+body.big .plotbox{position:absolute;inset:0}
+body.big canvas{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:0}
+body.big #hover{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:3;margin:0;padding:2px 12px;font-size:1rem;white-space:nowrap;unicode-bidi:plaintext}
+body.big #hover:empty{display:none}
 .hbtns{display:flex;gap:8px}
 header h1{margin:0;font-size:1.2rem}
 header p{margin:2px 0 0;font-size:.85rem;opacity:.8}
@@ -63,7 +74,7 @@ html[dir=rtl] .formula{text-align:right}
 .alert.warn{background:#fff6e0;border-color:#f0d58a;color:#6b4a00}
 .plotbox{position:relative}
 canvas{width:100%;height:380px;display:block;background:#fff;border:1px solid var(--line);border-radius:8px}
-#hover{font-size:.85rem;color:var(--muted);min-height:1.4em;margin-top:6px;direction:ltr;text-align:left;font-family:ui-monospace,Menlo,Consolas,monospace}
+#hover{font-size:.85rem;color:var(--muted);min-height:1.4em;margin-top:6px;direction:ltr;text-align:left;font-family:ui-monospace,Menlo,Consolas,monospace;unicode-bidi:plaintext}
 table.res{width:100%;border-collapse:collapse}
 table.res td{padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
 table.res td:first-child{width:38%;color:var(--muted);font-size:.9rem}
@@ -94,7 +105,7 @@ footer div:first-child{font-weight:600}
 </div></header>
 
 <main class="wrap">
-  <section class="card">
+  <section class="card" id="inputCard">
     <h2 data-i18n="secInput"></h2>
     <div class="seg" role="group" aria-label="mode">
       <button id="modeCont" type="button" class="on"></button>
@@ -113,8 +124,8 @@ footer div:first-child{font-weight:600}
     <div id="msg" aria-live="polite"></div>
   </section>
 
-  <section class="card">
-    <h2 data-i18n="secPlot"></h2>
+  <section class="card" id="plotCard">
+    <div class="cardhead"><h2 data-i18n="secPlot"></h2><button id="bigBtn" type="button"></button></div>
     <div class="plotbox"><canvas id="cv" role="img" aria-label="signal plot"></canvas></div>
     <div id="hover"></div>
     <div class="ctrl">
@@ -145,7 +156,7 @@ footer div:first-child{font-weight:600}
     <table class="res"><tbody id="resBody"></tbody></table>
   </section>
 
-  <section class="card">
+  <section class="card" id="aboutCard">
     <h2 data-i18n="secAbout"></h2>
     <div id="about"></div>
   </section>
@@ -686,6 +697,8 @@ const I18N = {
     btnPlot: "ارسم الإشارة",
     btnReset: "إعادة ضبط",
     btnFull: "ملء الشاشة",
+    btnBig: "تكبير الرسم",
+    btnSmall: "تصغير الرسم",
     btnFullExit: "إنهاء ملء الشاشة",
     secCtrl: "التحكم بشكل الموجة",
     ctrlParamsTitle: "تعديل الموجة",
@@ -831,6 +844,8 @@ const I18N = {
     btnPlot: "Plot Signal",
     btnReset: "Reset",
     btnFull: "Fullscreen",
+    btnBig: "Enlarge graph",
+    btnSmall: "Shrink graph",
     btnFullExit: "Exit fullscreen",
     secCtrl: "Wave shape controls",
     ctrlParamsTitle: "Change the wave",
@@ -1093,7 +1108,38 @@ function autoY() {
   drawPlot();
 }
 
+/* Enlarged graph, like a video's fullscreen button: only the graph fills the screen.
+   The page overlay always works; on top of it we ask the browser for real fullscreen
+   (this needs the user's click, which this button gives us). */
+let big = false;
+let bigEnteredFs = false;                       // true only if WE put the browser into fullscreen
+function setBig(on) {
+  if (on === big) return;
+  big = on;
+  document.body.classList.toggle("big", on);
+  $("bigBtn").textContent = tr(on ? "btnSmall" : "btnBig");
+  if (window.scrollTo) window.scrollTo(0, 0);
+  drawPlot();
+  try {
+    const de = document.documentElement, inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    if (on && !inFs && (de.requestFullscreen || de.webkitRequestFullscreen)) {
+      bigEnteredFs = true;
+      const r = (de.requestFullscreen || de.webkitRequestFullscreen).call(de);
+      if (r && r.catch) r.catch(() => { bigEnteredFs = false; });
+    } else if (!on && bigEnteredFs && inFs) {
+      bigEnteredFs = false;
+      (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    }
+  } catch (e) { bigEnteredFs = false; }          // not allowed: the overlay is still there
+}
+
 /* Fullscreen works in every modern browser, but only from a click (browser rule). */
+function onFsChange() {
+  const inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  if (big && bigEnteredFs && !inFs) { bigEnteredFs = false; setBig(false); }
+  updateFsButton();
+  drawPlot();
+}
 function updateFsButton() {
   const on = !!(document.fullscreenElement || document.webkitFullscreenElement);
   $("fsBtn").textContent = tr(on ? "btnFullExit" : "btnFull");
@@ -1118,6 +1164,7 @@ function applyLang() {
   $("langBtn").textContent = lang === "ar" ? "English" : "العربية";
   document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = tr(el.getAttribute("data-i18n")); });
   updateFsButton();
+  $("bigBtn").textContent = tr(big ? "btnSmall" : "btnBig");
   $("modeCont").textContent = tr("modeCont");
   $("modeDisc").textContent = tr("modeDisc");
   $("modeCont").classList.toggle("on", !d);
@@ -1238,8 +1285,9 @@ function drawPlot() {
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   const W = rect.width, H = rect.height;
   g.clearRect(0, 0, W, H);
-  g.font = "12px system-ui, sans-serif";
-  const m = { l: 64, r: 16, t: 14, b: 46 };
+  const sc = big ? 1.4 : 1;                 // everything is drawn larger in the enlarged view
+  g.font = Math.round(12 * sc) + "px system-ui, sans-serif";
+  const m = { l: 64 * sc, r: 16, t: big ? 58 : 14, b: 46 * sc };   // enlarged: a top strip for the exit button and readout
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
 
   if (!lastData) {
@@ -1293,9 +1341,9 @@ function drawPlot() {
   /* labels */
   g.direction = "inherit";                  // axis titles follow the page language
   g.fillStyle = "#1b2430"; g.textAlign = "center"; g.textBaseline = "alphabetic";
-  g.font = "13px system-ui, sans-serif";
+  g.font = Math.round(13 * sc) + "px system-ui, sans-serif";
   g.fillText(tr(disc ? "xlabelD" : "xlabel"), m.l + pw / 2, H - 8);
-  g.save(); g.translate(14, m.t + ph / 2); g.rotate(-Math.PI / 2); g.fillText(tr(disc ? "ylabelD" : "ylabel"), 0, 0); g.restore();
+  g.save(); g.translate(14 * sc, m.t + ph / 2); g.rotate(-Math.PI / 2); g.fillText(tr(disc ? "ylabelD" : "ylabel"), 0, 0); g.restore();
 
   g.save();
   g.beginPath(); g.rect(m.l, m.t, pw, ph); g.clip();
@@ -1305,8 +1353,8 @@ function drawPlot() {
     const far = yr.manual ? 1e4 : 3;
     const base = Y(Math.max(yr.lo, Math.min(yr.hi, 0)));
     const dense = xs.length > 150;
-    g.strokeStyle = "#1f6feb"; g.fillStyle = "#1f6feb"; g.lineWidth = dense ? 1 : 1.8;
-    const r = xs.length > 400 ? 1.3 : dense ? 2 : 3.5;
+    g.strokeStyle = "#1f6feb"; g.fillStyle = "#1f6feb"; g.lineWidth = (dense ? 1 : 1.8) * sc;
+    const r = (xs.length > 400 ? 1.3 : dense ? 2 : 3.5) * sc;
     for (let i = 0; i < xs.length; i++) {
       const y = xs[i];
       if (!isFinite(y) || y > yr.hi + far * span || y < yr.lo - far * span) continue;
@@ -1316,7 +1364,7 @@ function drawPlot() {
     }
   } else {
     /* continuous: samples joined by line segments, broken at undefined/huge values */
-    g.strokeStyle = "#1f6feb"; g.lineWidth = 2; g.lineJoin = "round";
+    g.strokeStyle = "#1f6feb"; g.lineWidth = 2 * sc; g.lineJoin = "round";
     const far = yr.manual ? 1e4 : 3;
     let pen = false;
     g.beginPath();
@@ -1335,7 +1383,7 @@ function drawPlot() {
 function onHover(ev) {
   if (!lastData || !lastData.yr) return;
   const cv = $("cv"), rect = cv.getBoundingClientRect();
-  const m = { l: 64, r: 16 };
+  const m = { l: 64 * (big ? 1.4 : 1), r: 16 };
   const pw = rect.width - m.l - m.r;
   const frac = (ev.clientX - rect.left - m.l) / pw;
   if (frac < 0 || frac > 1) return;
@@ -1493,8 +1541,11 @@ function init() {
   ["pA", "pK", "pTd", "pB"].forEach((id) => $(id).addEventListener("input", () => { updateReadouts(); if (lastData) plotSignal(true); }));
   $("fsBtn").hidden = !(document.fullscreenEnabled || document.webkitFullscreenEnabled);
   $("fsBtn").addEventListener("click", toggleFullscreen);
-  document.addEventListener("fullscreenchange", updateFsButton);
-  document.addEventListener("webkitfullscreenchange", updateFsButton);
+  $("bigBtn").addEventListener("click", () => setBig(!big));
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && big) setBig(false); });
+  $("cv").addEventListener("dblclick", () => { if (big) setBig(false); });
+  document.addEventListener("fullscreenchange", onFsChange);
+  document.addEventListener("webkitfullscreenchange", onFsChange);
   $("pReset").addEventListener("click", restoreWave);
   ["ymin", "ymax"].forEach((id) => { $(id).addEventListener("change", applyYFields); $(id).addEventListener("keydown", (e) => { if (e.key === "Enter") applyYFields(); }); });
   $("zyIn").addEventListener("click", () => zoomY(0.5));
